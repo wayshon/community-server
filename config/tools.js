@@ -11,6 +11,19 @@ class Tools {
         }
         return false;
     }
+    //是数组
+    isArray(val) {
+        // if (this.isBlank(val))
+        //     return false;
+        return Object.prototype.toString.call(val) === '[object Array]';
+    }
+    //是空对象
+    isEmptyObject(obj) {
+        for (var key in obj) {
+            return false
+        };
+        return true
+    }
 }
 
 module.exports = new Tools;

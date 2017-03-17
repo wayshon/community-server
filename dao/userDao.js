@@ -1,5 +1,5 @@
-var User = require('../models/user.js'),
-    tools = require('../config/tools.js');
+var User = require('../models/users'),
+    tools = require('../config/tools');
 
 // 向前台返回JSON方法的简单封装
 var jsonWrite = function (res, ret) {
@@ -15,7 +15,7 @@ var jsonWrite = function (res, ret) {
 
 class UserDao {
     addUser(req, res, next) {
-        if (!req.body || tools.isBlank(req.body.openid)) {
+        if (tools.isBlank(req.body.openid)) {
             jsonWrite(res, {
                 code: 500,
                 msg: '添加用户失败，缺少openid'
@@ -48,7 +48,7 @@ class UserDao {
     }
 
     getUser(req, res, next) {
-        if (!req.query ||tools.isBlank(req.query.id)) {
+        if (tools.isBlank(req.query.id)) {
             jsonWrite(res, {
                 code: 500,
                 msg: '缺少用户id'

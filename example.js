@@ -17,7 +17,7 @@ var user = {
 
 var article = {
     userid: -1,
-    username: '',
+    nickname: '',
     avatar: '',
     level: '',
     id: -1,
@@ -43,25 +43,27 @@ var comment = {
     date: '',
     replyNum: 0,
     starNum: 0,
-    replys: []
+    replyUserid: -1,
+    replyName: ''
 }
 
-var reply = {
-    userid: -1,
-    avatar: '',
-    nickname: '',
-    articleid: -1,
-    commentid: -1,
-    id: -1,
-    date: '',
-    content: '',
-    starNum: 0
-}
+// var reply = {
+//     userid: -1,
+//     avatar: '',
+//     nickname: '',
+//     articleid: -1,
+//     commentid: -1,
+//     id: -1,
+//     date: '',
+//     content: '',
+//     starNum: 0
+// }
 
 var message = {
     userid: -1,
     avatar: '',
     nickname: '',
+    authorid: -1,
     articleid: -1,
     content: '',
     id: -1,

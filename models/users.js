@@ -1,6 +1,3 @@
-/*
-User与Post是对数据库中用户集合与博客集合的封装
-*/
 var ObjectID = require('mongodb').ObjectID,
     async = require('async');
 
@@ -27,22 +24,22 @@ var pool = poolModule.Pool({
 
 class User {
   /**保存用户 */
-  save(user, callback) {
+  save(_user, callback) {
     var user = {
-        subscribe: user.subscribe, 
-        openid: user.openid, 
-        nickname: user.nickname, 
-        sex: user.sex, 
-        language: user.language, 
-        city: user.city, 
-        province: user.province, 
-        country: user.country, 
-        headimgurl: user.headimgurl, 
-        subscribe_time: user.subscribe_time,
-        unionid: user.unionid,
-        remark: user.remark,
-        groupid: user.groupid,
-        phone: user.phone
+        subscribe: _user.subscribe, 
+        openid: _user.openid, 
+        nickname: _user.nickname, 
+        sex: _user.sex, 
+        language: _user.language, 
+        city: _user.city, 
+        province: _user.province, 
+        country: _user.country, 
+        headimgurl: _user.headimgurl, 
+        subscribe_time: _user.subscribe_time,
+        unionid: _user.unionid,
+        remark: _user.remark,
+        groupid: _user.groupid,
+        phone: _user.phone
     }
 
     async.waterfall([
