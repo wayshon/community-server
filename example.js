@@ -26,6 +26,7 @@ var article = {
     date: '',
     content: '',
     comments: [],
+    stars: [],
     commentNum: 0,
     starNum: 0,
     readNum: 0,

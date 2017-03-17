@@ -2,5 +2,6 @@ module.exports = {
   cookieSecret: 'comnode', 
   db: 'comnode', 
   host: 'localhost',
-  port: 27017
+  port: 27017,
+  jwtSecret: 'comnode'
 }; 

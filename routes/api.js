@@ -1,9 +1,39 @@
 var userDao = require('../dao/userDao'),
     articleDao = require('../dao/articleDao'),
     commentDao = require('../dao/commentDao'),
-    messageDao = require('../dao/messageDao');
+    messageDao = require('../dao/messageDao'),
+    settings = require('../config/settings'),
+    jwt = require("jsonwebtoken"),
+    moment = require("moment");
 
 module.exports = function (app) {
+
+    app.get('/login', (req, res, next) => {
+        var user = {
+            id: 666,
+            name: 'name',
+            age: 10
+        }
+  
+        var authToken = jwt.sign({
+            user: user,
+            exp: moment().add('days', 1).valueOf(),
+        }, settings.jwtSecret);
+
+        res.json({
+            code: 200,
+            msg: 'ok',
+            token: authToken
+        });
+    });
+
+    app.get('/t', (req, res, next) => {
+        res.json({
+            code: 200,
+            msg: 'ok',
+            user: global.user
+        });
+    });
 
     app.get('/t1', (req, res, next) => {
         articleDao.addArticle(req, res, next)

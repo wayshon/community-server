@@ -5,6 +5,10 @@ var logger = require('morgan');   //开发环境用morgan  生产环境用 expre
 var cookieParser = require('cookie-parser');
 var bodyParser = require('body-parser');
 
+//jwt
+var expressJwt = require("express-jwt");
+var jwt = require("jsonwebtoken");
+
 //打印日志到本地文件
 var fs = require('fs');
 var accessLog = fs.createWriteStream('./logs/access.log', {flags: 'a'});
@@ -28,13 +32,6 @@ app.use(bodyParser.json());   //加载解析json的中间件
 app.use(bodyParser.urlencoded({ extended: false }));    //加载解析urlencoded请求体的中间件
 app.use(cookieParser());    //加载解析cookie的中间件
 app.use(express.static(path.join(__dirname, 'public')));    //设置public文件夹为存放静态文件的目录
-//打印错误日志到本地文件
-app.use(function (err, req, res, next) {
-  var meta = '[' + new Date() + '] ' + req.url + '\n';
-  errorLog.write(meta + err.stack + '\n');
-  next();
-});
-
 
 //设置跨域访问
 app.all('*', function(req, res, next) {
@@ -44,6 +41,54 @@ app.all('*', function(req, res, next) {
     // res.header("Access-Control-Allow-Methods","PUT,POST,GET,DELETE,OPTIONS");
     // res.header("Content-Type", "application/json;charset=utf-8");
     next();
+});
+
+app.use(expressJwt({
+  secret: settings.jwtSecret,
+  credentialsRequired: false,
+  getToken: function fromHeader (req) {
+    // if (req.headers.Authorization) {
+    //   var decoded = jwt.verify(req.headers.Authorization, settings.jwtSecret);
+    //   console.log(decoded)
+    // if (decoded.exp <= Date.now()) {
+    //   res.end('Access token has expired', 400);
+    // } else {
+    //   global.user = decoded.user;
+    // }
+    //   return req.headers.Authorization;
+    // } else {
+    //   var err = new Error()
+    //   err.name = "UnauthorizedError"
+    //   throw err
+    // }
+
+    if (req.query && req.query.token) {
+      var decoded = jwt.verify(req.query.token, settings.jwtSecret);
+      console.log(decoded)
+      if (decoded.exp <= Date.now()) {
+        res.end('Access token has expired', 400);
+      } else {
+        global.user = decoded.user;
+      }
+      return req.query.token;
+    } else {
+      var err = new Error()
+      err.name = "UnauthorizedError"
+      throw err
+      return null
+    }
+  }
+}).unless({path: ["/login"]}));
+
+//打印错误日志到本地文件
+app.use(function (err, req, res, next) {
+  if (err.name === "UnauthorizedError") {
+    res.status(401).send("invalid token");
+  } else {
+    var meta = '[' + new Date() + '] ' + req.url + '\n';
+    errorLog.write(meta + err.stack + '\n');
+    next();
+  }
 });
 
 //路由控制器
