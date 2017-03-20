@@ -63,7 +63,15 @@ app.use(expressJwt({
     // }
 
     if (req.query && req.query.token) {
-      var decoded = jwt.verify(req.query.token, settings.jwtSecret);
+      var decoded;
+      try {
+        decoded = jwt.verify(req.query.token, settings.jwtSecret);
+      } catch(err) {
+        // console.log(err)
+        var err = new Error()
+        err.name = "UnauthorizedError"
+        throw err
+      }
       console.log(decoded)
       if (decoded.exp <= Date.now()) {
         res.end('Access token has expired', 400);
