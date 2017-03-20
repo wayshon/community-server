@@ -16,15 +16,8 @@ var jsonWrite = function (res, ret) {
 
 class MessageDao {
     addMessage(req, res, next) {
-        // if (!req.body || tools.isBlank(req.body.openid)) {
-        //     jsonWrite(res, {
-        //         code: 500,
-        //         msg: '添加用户失败，缺少openid'
-        //     })
-        //     return;
-        // }
         var newMessage = {
-            userid: 666,
+            userid: '58ca89c769f5670763e062ca',
             avatar: '_message.avatar',
             nickname: '_message.nickname',
             authorid: 777,

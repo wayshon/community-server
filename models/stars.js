@@ -19,78 +19,8 @@ var pool = poolModule.Pool({
   log      : false
 });
 
-class Comment {
-  // save(_id, comment, callback) {
-  //   async.waterfall([
-  //     function (cb) {
-  //       pool.acquire(function (err, db) {
-  //         cb(err, db);
-  //       });
-  //     },
-  //     function (db, cb) {
-  //       db.collection('articles', function (err, collection) {
-  //         cb(err, db, collection);
-  //       });
-  //     },
-  //     function (db, collection, cb) {
-  //       //通过用户名、时间及标题查找文档，并把一条留言对象添加到该文档的 comments 数组里
-  //       collection.update({
-  //         "_id": new ObjectID(_id)
-  //       }, {
-  //         $push: {"comments": comment}
-  //       } , function (err, test) {
-  //         console.log(test)
-  //           cb(err, db);
-  //       });
-  //     }
-  //   ], function (err, db) {
-  //     pool.release(db);
-  //     callback(err);
-  //   });
-  // }
-
-  // remove(_articleid, _commentid, callback) {
-  //   async.waterfall([
-  //     function (cb) {
-  //       pool.acquire(function (err, db) {
-  //         cb(err, db);
-  //       });
-  //     },
-  //     function (db, cb) {
-  //       db.collection('articles', function (err, collection) {
-  //         cb(err, db, collection);
-  //       });
-  //     },
-  //     function (db, collection, cb) {
-  //       collection.findOne({
-  //         "_id": new ObjectID(_articleid)
-  //       }, function (err, doc) {
-  //         cb(err, db, collection, doc);
-  //       });
-  //     },
-  //     function (db, collection, doc, cb) {
-  //       var comments = doc.comments;
-  //       var index = comments.findIndex(n => n.id == _commentid);
-  //       comments.splice(index, 1)
-  //       collection.update({
-  //         "_id": new ObjectID(_articleid)
-  //       }, {
-  //         $set: {"comments": comments}
-  //       }, function (err) {
-  //         cb(err, db);
-  //       });
-  //     }
-  //   ], function (err, db) {
-  //     if (err) {
-  //       console.log('***************************')
-  //     }
-  //     pool.release(db);
-  //     callback(err);
-  //   });
-  // }
-
-
-  save(comment, callback) {
+class Star {
+  save(star, callback) {
     async.waterfall([
       function (cb) {
         pool.acquire(function (err, db) {
@@ -98,12 +28,12 @@ class Comment {
         });
       },
       function (db, cb) {
-        db.collection('comments', function (err, collection) {
+        db.collection('stars', function (err, collection) {
           cb(err, db, collection);
         });
       },
       function (db, collection, cb) {
-        collection.insert(comment, {
+        collection.insert(star, {
           safe: true
         }, function (err) {
           cb(err, db);
@@ -116,16 +46,16 @@ class Comment {
       },
       function (db, collection, cb) {
         collection.update({
-          "_id": new ObjectID(comment.articleid)
+          "_id": new ObjectID(star.articleid)
         }, {
-          $inc: {"commentNum": 1}
+          $inc: {"starNum": 1}
         }, function (err) {
           cb(err, db, collection);
         });
       },
       function (db, collection, cb) {
         collection.findOne({
-          "_id": new ObjectID(comment.articleid)
+          "_id": new ObjectID(star.articleid)
         },{
           userid: true,
           avatar: true,
@@ -134,10 +64,10 @@ class Comment {
         },function (err, message) {
           message.articleid = message._id;
           message.authorid = message.userid;
-          message.userid = comment.userid;
-          message.comment = comment.content;
-          message.date = comment.date;
-          message.star = false;
+          message.userid = star.userid;
+          message.comment = null;
+          message.date = star.date;
+          message.star = true;
 
           delete message._id;
 
@@ -162,7 +92,7 @@ class Comment {
     });
   }
 
-  remove(_id, callback) {
+  remove(_articleid, _userid, callback) {
     async.waterfall([
       function (cb) {
         pool.acquire(function (err, db) {
@@ -170,13 +100,14 @@ class Comment {
         });
       },
       function (db, cb) {
-        db.collection('comments', function (err, collection) {
+        db.collection('stars', function (err, collection) {
           cb(err, db, collection);
         });
       },
       function (db, collection, cb) {
         collection.remove({
-          "_id": new ObjectID(_id)
+          "articleid": _articleid,
+          "userid": _userid
         }, {
           w: 1  //如果你只想删除第一条找到的记录可以设置 justOne 为 1
         }, function (err) {
@@ -197,7 +128,7 @@ class Comment {
         });
       },
       function (db, cb) {
-        db.collection('comments', function (err, collection) {
+        db.collection('stars', function (err, collection) {
           cb(err, db, collection);
         });
       },
@@ -217,16 +148,49 @@ class Comment {
           limit: limit
         }).sort({
           date: -1
-        }).toArray(function (err, comments) {
-          cb(err, db, comments, total);
+        }).toArray(function (err, stars) {
+          cb(err, db, stars, total);
         });
       }
-    ], function (err, db, comments, total) {
+    ], function (err, db, stars, total) {
       pool.release(db);
-      callback(err, comments, total);
+      callback(err, stars, total);
+    });
+  }
+
+  hasStar(_userid, _articleid, callback) {
+    async.waterfall([
+      function (cb) {
+        pool.acquire(function (err, db) {
+          cb(err, db);
+        });
+      },
+      function (db, cb) {
+        db.collection('stars', function (err, collection) {
+          cb(err, db, collection);
+        });
+      },
+      function (db, collection, cb) {
+        var query = {
+          articleid: _articleid,
+          userid: _userid
+        }
+        //使用 count 返回特定查询的文档数 total
+        //这里多包了collection.count()这个壳
+        collection.count(query, function (err, total) {
+          cb(err, db, total);
+        });
+      }
+    ], function (err, db, total) {
+      pool.release(db);
+      if (total == 0) {
+        callback(err, false);
+      } else {
+          callback(err, true);
+      }
     });
   }
 
 }
 
-module.exports = new Comment();
+module.exports = new Star();

@@ -37,10 +37,8 @@ class CommentDao {
         //     avatar: req.body.avatar,
         //     level: req.body.level,
         //     articleid: req.body.articleid,
-        //     id: shortid.generate(),
         //     content: req.body.content,
         //     date: moment().format('YYYY-MM-DD HH:mm:ss'),
-        //     replyNum: 0,
         //     starNum: 0,
         //     replyUserid: req.body.replyid || -1,
         //     replyName: req.body.replyName || ''
@@ -52,16 +50,15 @@ class CommentDao {
             nickname: 'req.body.nickname',
             avatar: 'req.body.avatar',
             level: 'req.body.level',
-            articleid: "58cb362e2618f306f6654475",
-            id: shortid.generate(),
+            articleid: "58cf87a97639d925b8fe298b",
             content: 'req.body.content',
             date: moment().format('YYYY-MM-DD HH:mm:ss'),
-            replyNum: 0,
             starNum: 0,
             replyUserid: -1,
             replyName: ''
         }
-        Comment.save(newComment.articleid, newComment, function (err, user) {
+
+        Comment.save(newComment, function (err, user) {
           if (err) {
             jsonWrite(res, undefined);
             return;
@@ -74,13 +71,7 @@ class CommentDao {
     }
 
     removeComment(req, res, next) {
-        // if (!req.body || tools.isBlank(req.body.articleid)) {
-        //     jsonWrite(res, {
-        //         code: 500,
-        //         msg: '缺少articleid'
-        //     })
-        //     return;
-        // } else if (tools.isBlank(req.body.commentid)) {
+        // if (tools.isBlank(req.query.commentid)) {
         //     jsonWrite(res, {
         //         code: 500,
         //         msg: '缺少commentid'
@@ -88,7 +79,7 @@ class CommentDao {
         //     return;
         // }
 
-        Comment.remove("58cb362e2618f306f6654475", 'Sy-GYGYjx', function (err, user) {
+        Comment.remove("58cf455e102ded0c3dec9d0c", function (err) {
           if (err) {
             jsonWrite(res, undefined);
             return;
@@ -98,6 +89,32 @@ class CommentDao {
               msg: '删除成功'
           });
         });
+    }
+
+    getCommentList(req, res, next) {
+        // if (tools.isBlank(req.query.articleid)) {
+        //     jsonWrite(res, {
+        //         code: 500,
+        //         msg: '缺少articleid'
+        //     })
+        //     return;
+        // }
+
+        let articleid = req.query.articleid,
+            page = req.query.page || 1,
+            limit = req.query.limit || 10;
+        Comment.getList("58cf87a97639d925b8fe298b", page, limit, function (err, listOb, total) {
+            if (err) {
+                jsonWrite(res, undefined);
+                return;
+            }
+            jsonWrite(res, {
+                code: 200,
+                msg: '获取成功',
+                listOb: listOb,
+                total: total
+            });
+        })
     }
 }
 

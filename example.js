@@ -72,3 +72,12 @@ var message = {
     date: '',
     star: false
 }
+
+var star = {
+    userid: -1,
+    avatar: '',
+    nickname: '',
+    articleid: -1,
+    id: '',
+    date: ''
+}

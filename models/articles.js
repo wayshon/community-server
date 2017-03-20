@@ -49,6 +49,67 @@ class Article {
     });
   }
 
+  /**删除一篇文章 */
+  remove(_id, callback) {
+    async.waterfall([
+      function (cb) {
+        pool.acquire(function (err, db) {
+          cb(err, db);
+        });
+      },
+      function (db, cb) {
+        db.collection('articles', function (err, collection) {
+          cb(err, db, collection);
+        });
+      },
+      function (db, collection, cb) {
+        collection.remove({
+          "_id": new ObjectID(_id)
+        }, {
+          w: 1  //如果你只想删除第一条找到的记录可以设置 justOne 为 1
+        }, function (err) {
+          cb(err, db)
+        });
+      }
+    ], function (err, db) {
+      pool.release(db);
+      callback(err);
+    });
+  }
+
+  /**更新一篇文章 */
+  update(_id, article, callback) {
+    async.waterfall([
+      function (cb) {
+        pool.acquire(function (err, db) {
+          cb(err, db);
+        });
+      },
+      function (db, cb) {
+        db.collection('articles', function (err, collection) {
+          cb(err, db, collection);
+        });
+      },
+      function (db, collection, cb) {
+        collection.update({
+          "_id": new ObjectID(_id)
+        }, {
+          $set: {
+            'type': article.type,
+            'title': article.title,
+            'content': article.content,
+            'imgs': article.imgs
+          }
+        }, function (err) {
+          cb(err, db);
+        });
+      }
+    ], function (err, db) {
+      pool.release(db);
+      callback(err);
+    });
+  }
+
   /**获取一篇文章 */
   get(_id, callback) {
     async.waterfall([
@@ -89,7 +150,7 @@ class Article {
     });
   }
 
-  /**读取文章列表 */
+  /**获取文章列表 */
   getList(search, page, limit, callback) {
     async.waterfall([
       function (cb) {
@@ -106,7 +167,7 @@ class Article {
         var query = {};
         if (search) {
           var key = new RegExp(search, "i");
-          query.search = key;
+          query.title = key;
         }
         //使用 count 返回特定查询的文档数 total
         //这里多包了collection.count()这个壳
@@ -130,8 +191,174 @@ class Article {
     });
   }
 
-  /**更新一篇文章 */
-  update(_id, article, callback) {
+  /**获取精选文章列表 */
+  handpickList(page, limit, callback) {
+    async.waterfall([
+      function (cb) {
+        pool.acquire(function (err, db) {
+          cb(err, db);
+        });
+      },
+      function (db, cb) {
+        db.collection('articles', function (err, collection) {
+          cb(err, db, collection);
+        });
+      },
+      function (db, collection, cb) {
+        var query = {
+          handpick: true
+        };
+        //使用 count 返回特定查询的文档数 total
+        //这里多包了collection.count()这个壳
+        collection.count(query, function (err, total) {
+          cb(err, query, db, collection, total);
+        });
+      },
+      function (query, db, collection, total, cb) {
+        collection.find(query, {
+          skip: (page - 1) * limit,
+          limit: limit
+        }).sort({
+          date: -1
+        }).toArray(function (err, docs) {
+          cb(err, db, docs, total);
+        });
+      }
+    ], function (err, db, docs, total) {
+      pool.release(db);
+      callback(err, docs, total);
+    });
+  }
+
+  /**获取指定类型文章列表 */
+  articleListByType(type, search, page, limit, callback) {
+    async.waterfall([
+      function (cb) {
+        pool.acquire(function (err, db) {
+          cb(err, db);
+        });
+      },
+      function (db, cb) {
+        db.collection('articles', function (err, collection) {
+          cb(err, db, collection);
+        });
+      },
+      function (db, collection, cb) {
+        var query = {
+          type: type
+        };
+        if (search) {
+          var key = new RegExp(search, "i");
+          query.title = key;
+        }
+        //使用 count 返回特定查询的文档数 total
+        //这里多包了collection.count()这个壳
+        collection.count(query, function (err, total) {
+          cb(err, query, db, collection, total);
+        });
+      },
+      function (query, db, collection, total, cb) {
+        collection.find(query, {
+          skip: (page - 1) * limit,
+          limit: limit
+        }).sort({
+          date: -1
+        }).toArray(function (err, docs) {
+          cb(err, db, docs, total);
+        });
+      }
+    ], function (err, db, docs, total) {
+      pool.release(db);
+      callback(err, docs, total);
+    });
+  }
+
+  /**获取指定用户文章列表 */
+  articleListByUser(userid, search, page, limit, callback) {
+    async.waterfall([
+      function (cb) {
+        pool.acquire(function (err, db) {
+          cb(err, db);
+        });
+      },
+      function (db, cb) {
+        db.collection('articles', function (err, collection) {
+          cb(err, db, collection);
+        });
+      },
+      function (db, collection, cb) {
+        var query = {
+          userid: userid
+        };
+        if (search) {
+          var key = new RegExp(search, "i");
+          query.title = key;
+        }
+        //使用 count 返回特定查询的文档数 total
+        //这里多包了collection.count()这个壳
+        collection.count(query, function (err, total) {
+          cb(err, query, db, collection, total);
+        });
+      },
+      function (query, db, collection, total, cb) {
+        collection.find(query, {
+          skip: (page - 1) * limit,
+          limit: limit
+        }).sort({
+          date: -1
+        }).toArray(function (err, docs) {
+          cb(err, db, docs, total);
+        });
+      }
+    ], function (err, db, docs, total) {
+      pool.release(db);
+      callback(err, docs, total);
+    });
+  }
+
+  articleListByCollection(userid, search, page, limit, callback) {
+    async.waterfall([
+      function (cb) {
+        pool.acquire(function (err, db) {
+          cb(err, db);
+        });
+      },
+      function (db, cb) {
+        db.collection('articles', function (err, collection) {
+          cb(err, db, collection);
+        });
+      },
+      function (db, collection, cb) {
+        var query = {
+          'collections': userid
+        };
+        if (search) {
+          var key = new RegExp(search, "i");
+          query.title = key;
+        }
+        //使用 count 返回特定查询的文档数 total
+        //这里多包了collection.count()这个壳
+        collection.count(query, function (err, total) {
+          cb(err, query, db, collection, total);
+        });
+      },
+      function (query, db, collection, total, cb) {
+        collection.find(query, {
+          skip: (page - 1) * limit,
+          limit: limit
+        }).sort({
+          date: -1
+        }).toArray(function (err, docs) {
+          cb(err, db, docs, total);
+        });
+      }
+    ], function (err, db, docs, total) {
+      pool.release(db);
+      callback(err, docs, total);
+    });
+  }
+
+  addCollections(_articleid, _userid, callback) {
     async.waterfall([
       function (cb) {
         pool.acquire(function (err, db) {
@@ -145,9 +372,23 @@ class Article {
       },
       function (db, collection, cb) {
         collection.update({
-          "_id": new ObjectID(_id)
+          "_id": new ObjectID(_articleid)
         }, {
-          $set: {article: article}
+          $push: {"collections": _userid}
+        } , function (err) {
+            cb(err, db);
+        });
+      },
+      function (db, cb) {
+        db.collection('articles', function (err, collection) {
+          cb(err, db, collection);
+        });
+      },
+      function (db, collection, cb) {
+        collection.update({
+          "_id": new ObjectID(_articleid)
+        }, {
+          $inc: {"collectionNum": 1}
         }, function (err) {
           cb(err, db);
         });
@@ -158,8 +399,7 @@ class Article {
     });
   }
 
-  /**删除一篇文章 */
-  remove(_id, callback) {
+  removeCollections(_articleid, _userid, callback) {
     async.waterfall([
       function (cb) {
         pool.acquire(function (err, db) {
@@ -172,12 +412,12 @@ class Article {
         });
       },
       function (db, collection, cb) {
-        collection.remove({
-          "_id": new ObjectID(_id)
+        collection.update({
+          "_id": new ObjectID(_articleid)
         }, {
-          w: 1
-        }, function (err) {
-          cb(err, db)
+          $pull: {"collections" : _userid }
+        } , function (err) {
+            cb(err, db);
         });
       }
     ], function (err, db) {
@@ -185,6 +425,7 @@ class Article {
       callback(err);
     });
   }
+  
 }
 
 module.exports = new Article();

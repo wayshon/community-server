@@ -43,50 +43,50 @@ app.all('*', function(req, res, next) {
     next();
 });
 
-app.use(expressJwt({
-  secret: settings.jwtSecret,
-  credentialsRequired: false,
-  getToken: function fromHeader (req) {
-    // if (req.headers.Authorization) {
-    //   var decoded = jwt.verify(req.headers.Authorization, settings.jwtSecret);
-    //   console.log(decoded)
-    // if (decoded.exp <= Date.now()) {
-    //   res.end('Access token has expired', 400);
-    // } else {
-    //   global.user = decoded.user;
-    // }
-    //   return req.headers.Authorization;
-    // } else {
-    //   var err = new Error()
-    //   err.name = "UnauthorizedError"
-    //   throw err
-    // }
+// app.use(expressJwt({
+//   secret: settings.jwtSecret,
+//   credentialsRequired: false,
+//   getToken: function fromHeader (req) {
+//     // if (req.headers.Authorization) {
+//     //   var decoded = jwt.verify(req.headers.Authorization, settings.jwtSecret);
+//     //   console.log(decoded)
+//     // if (decoded.exp <= Date.now()) {
+//     //   res.end('Access token has expired', 400);
+//     // } else {
+//     //   global.user = decoded.user;
+//     // }
+//     //   return req.headers.Authorization;
+//     // } else {
+//     //   var err = new Error()
+//     //   err.name = "UnauthorizedError"
+//     //   throw err
+//     // }
 
-    if (req.query && req.query.token) {
-      var decoded;
-      try {
-        decoded = jwt.verify(req.query.token, settings.jwtSecret);
-      } catch(err) {
-        // console.log(err)
-        var err = new Error()
-        err.name = "UnauthorizedError"
-        throw err
-      }
-      console.log(decoded)
-      if (decoded.exp <= Date.now()) {
-        res.end('Access token has expired', 400);
-      } else {
-        global.user = decoded.user;
-      }
-      return req.query.token;
-    } else {
-      var err = new Error()
-      err.name = "UnauthorizedError"
-      throw err
-      return null
-    }
-  }
-}).unless({path: ["/login"]}));
+//     if (req.query && req.query.token) {
+//       var decoded;
+//       try {
+//         decoded = jwt.verify(req.query.token, settings.jwtSecret);
+//       } catch(err) {
+//         // console.log(err)
+//         var err = new Error()
+//         err.name = "UnauthorizedError"
+//         throw err
+//       }
+//       console.log(decoded)
+//       if (decoded.exp <= Date.now()) {
+//         res.end('Access token has expired', 400);
+//       } else {
+//         global.user = decoded.user;
+//       }
+//       return req.query.token;
+//     } else {
+//       var err = new Error()
+//       err.name = "UnauthorizedError"
+//       throw err
+//       return null
+//     }
+//   }
+// }).unless({path: ["/login"]}));
 
 //打印错误日志到本地文件
 app.use(function (err, req, res, next) {

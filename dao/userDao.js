@@ -48,21 +48,52 @@ class UserDao {
     }
 
     getUser(req, res, next) {
-        if (tools.isBlank(req.query.id)) {
-            jsonWrite(res, {
-                code: 500,
-                msg: '缺少用户id'
-            })
-            return;
-        }
-        // var userid = req.query.id || "58ca89c769f5670763e062ca";
-        User.get(req.query.id, function (err, user) {
+        // if (tools.isBlank(req.query.id)) {
+        //     jsonWrite(res, {
+        //         code: 500,
+        //         msg: '缺少用户id'
+        //     })
+        //     return;
+        // }
+        User.get("58ca89c769f5670763e062ca", function (err, user) {
             if (err) {
                 jsonWrite(res, undefined);
                 return;
             }
-            jsonWrite(res, user);
+            if (tools.isBlank(user)) {
+                jsonWrite(res, {
+                    code: 500,
+                    msg: '用户不存在'
+                });
+                return;
+            }
+            jsonWrite(res, {
+                code: 200,
+                msg: '获取成功',
+                ob: user
+            });
         })
+    }
+
+    removeUser(req, res, next) {
+        if (tools.isBlank(req.query.userid)) {
+            jsonWrite(res, {
+                code: 500,
+                msg: '缺少userid'
+            })
+            return;
+        }
+
+        User.remove(req.query.userid, function (err) {
+          if (err) {
+            jsonWrite(res, undefined);
+            return;
+          }
+          jsonWrite(res, {
+              code: 200,
+              msg: '删除成功'
+          });
+        });
     }
 }
 

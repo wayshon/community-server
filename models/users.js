@@ -76,6 +76,10 @@ class User {
       },
       function (db, cb) {
         db.collection('users', function (err, collection) {
+          if(err) {
+            console.log('--------------')
+            console.log(err)
+          }
           cb(err, db, collection);
         });
       },
@@ -89,6 +93,33 @@ class User {
     ],function (err, db, user) {
       pool.release(db);
       callback(err, user);//成功！返回查询的用户信息
+    });
+  }
+
+  remove(_id, callback) {
+    async.waterfall([
+      function (cb) {
+        pool.acquire(function (err, db) {
+          cb(err, db);
+        });
+      },
+      function (db, cb) {
+        db.collection('users', function (err, collection) {
+          cb(err, db, collection);
+        });
+      },
+      function (db, collection, cb) {
+        collection.remove({
+          "_id": new ObjectID(_id)
+        }, {
+          w: 1  //如果你只想删除第一条找到的记录可以设置 justOne 为 1
+        }, function (err) {
+          cb(err, db)
+        });
+      }
+    ], function (err, db) {
+      pool.release(db);
+      callback(err);
     });
   }
 };
