@@ -1,8 +1,8 @@
-var User = require('../models/users'),
+let User = require('../models/users'),
     tools = require('../config/tools');
 
 // 向前台返回JSON方法的简单封装
-var jsonWrite = function (res, ret) {
+let jsonWrite = function (res, ret) {
     if (typeof ret === 'undefined') {
         res.json({
             code: '500',
@@ -22,7 +22,7 @@ class UserDao {
             })
             return;
         }
-        var newUser = {
+        let newUser = {
             subscribe: req.subscribe || '', 
             openid: req.openid, 
             nickname: req.nickname || '', 

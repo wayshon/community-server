@@ -1,11 +1,11 @@
-var ObjectID = require('mongodb').ObjectID;
-var Db = require('./db');
-var async = require('async');
-var poolModule = require('generic-pool');
-var pool = poolModule.Pool({
+let ObjectID = require('mongodb').ObjectID;
+let Db = require('./db');
+let async = require('async');
+let poolModule = require('generic-pool');
+let pool = poolModule.Pool({
   name     : 'mongoPool',
   create   : function(callback) {
-    var mongodb = Db();
+    let mongodb = Db();
     mongodb.open(function (err, db) {
       callback(err, db);
     })
@@ -69,8 +69,8 @@ class Comment {
   //       });
   //     },
   //     function (db, collection, doc, cb) {
-  //       var comments = doc.comments;
-  //       var index = comments.findIndex(n => n.id == _commentid);
+  //       let comments = doc.comments;
+  //       let index = comments.findIndex(n => n.id == _commentid);
   //       comments.splice(index, 1)
   //       collection.update({
   //         "_id": new ObjectID(_articleid)
@@ -202,7 +202,7 @@ class Comment {
         });
       },
       function (db, collection, cb) {
-        var query = {
+        let query = {
           articleid: _articleid
         }
         //使用 count 返回特定查询的文档数 total

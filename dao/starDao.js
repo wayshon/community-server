@@ -1,10 +1,10 @@
-var Star = require('../models/stars'),
+let Star = require('../models/stars'),
     tools = require('../config/tools'),
     moment = require('moment'),
     shortid = require('shortid');
 
 // 向前台返回JSON方法的简单封装
-var jsonWrite = function (res, ret) {
+let jsonWrite = function (res, ret) {
     if (typeof ret === 'undefined') {
         res.json({
             code: '500',
@@ -25,18 +25,18 @@ class StarDao {
         //     return;
         // }
 
-        // var newStar = {
-        //     userid: global.user.id,
-        //     avatar: global.user.avatar,
-        //     nickname: global.user.nickname,
+        // let newStar = {
+        //     userid: req.user.id,
+        //     avatar: req.user.avatar,
+        //     nickname: req.user.nickname,
         //     articleid: req.query.articleid,
         //     date: moment().format('YYYY-MM-DD HH:mm:ss')
         // }
 
-        var newStar = {
+        let newStar = {
             userid: '58ca89c769f5670763e062ca',
-            avatar: 'global.user.avatar',
-            nickname: 'global.user.nickname',
+            avatar: 'req.user.avatar',
+            nickname: 'req.user.nickname',
             articleid: '58cf87a97639d925b8fe298b',
             date: moment().format('YYYY-MM-DD HH:mm:ss')
         }

@@ -1,10 +1,10 @@
-var Comment = require('../models/comments'),
+let Comment = require('../models/comments'),
     tools = require('../config/tools'),
     moment = require('moment'),
     shortid = require('shortid');
 
 // 向前台返回JSON方法的简单封装
-var jsonWrite = function (res, ret) {
+let jsonWrite = function (res, ret) {
     if (typeof ret === 'undefined') {
         res.json({
             code: '500',
@@ -31,7 +31,7 @@ class CommentDao {
         //     return;
         // }
 
-        // var newComment = {
+        // let newComment = {
         //     userid: req.body.userid,
         //     nickname: req.body.nickname,
         //     avatar: req.body.avatar,
@@ -45,7 +45,7 @@ class CommentDao {
         // }
 
 
-        var newComment = {
+        let newComment = {
             userid: 666,
             nickname: 'req.body.nickname',
             avatar: 'req.body.avatar',

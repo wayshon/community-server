@@ -1,4 +1,4 @@
-var userDao = require('../dao/userDao'),
+let userDao = require('../dao/userDao'),
     articleDao = require('../dao/articleDao'),
     commentDao = require('../dao/commentDao'),
     starDao = require('../dao/starDao'),
@@ -10,13 +10,13 @@ var userDao = require('../dao/userDao'),
 module.exports = app => {
 
     app.get('/login', (req, res, next) => {
-        var user = {
+        let user = {
             id: 666,
             name: 'name',
             age: 10
         }
   
-        var authToken = jwt.sign({
+        let authToken = jwt.sign({
             user: user,
             exp: moment().add('days', 1).valueOf(),
         }, settings.jwtSecret);
@@ -32,7 +32,7 @@ module.exports = app => {
         res.json({
             code: 200,
             msg: 'ok',
-            user: global.user
+            user: req.user
         });
     });
 

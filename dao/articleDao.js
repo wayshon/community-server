@@ -175,7 +175,7 @@ class ArticleDao {
                 });
                 return;
             }
-            if (global.user && article.collections.findIndex(v => v == global.user.id) !== -1) {
+            if (req.user && article.collections.findIndex(v => v == req.user.id) !== -1) {
                 article.isCollected = true;
             } else {
                 article.isCollected = false;
@@ -407,13 +407,13 @@ module.exports = new ArticleDao()
 
 /**判断是否已收藏 */
 function judgeCollected(listOb) {
-    if (!global.user) {
+    if (!req.user) {
         listOb.forEach(article => {
             article.isCollected = false;
         })
     } else {
         listOb.forEach(article => {
-            if (article.collections.findIndex(v => v == global.user.id) !== -1) {
+            if (article.collections.findIndex(v => v == req.user.id) !== -1) {
                 article.isCollected = true;
             } else {
                 article.isCollected = false;

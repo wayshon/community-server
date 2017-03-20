@@ -1,12 +1,12 @@
 //对文章的数据库存取操作
-var ObjectID = require('mongodb').ObjectID;
-var async = require('async');
-var Db = require('./db');
-var poolModule = require('generic-pool');
-var pool = poolModule.Pool({
+let ObjectID = require('mongodb').ObjectID;
+let async = require('async');
+let Db = require('./db');
+let poolModule = require('generic-pool');
+let pool = poolModule.Pool({
   name     : 'mongoPool',
   create   : function(callback) {
-    var mongodb = Db();
+    let mongodb = Db();
     mongodb.open(function (err, db) {
       callback(err, db);
     })
@@ -164,9 +164,9 @@ class Article {
         });
       },
       function (db, collection, cb) {
-        var query = {};
+        let query = {};
         if (search) {
-          var key = new RegExp(search, "i");
+          let key = new RegExp(search, "i");
           query.title = key;
         }
         //使用 count 返回特定查询的文档数 total
@@ -205,7 +205,7 @@ class Article {
         });
       },
       function (db, collection, cb) {
-        var query = {
+        let query = {
           handpick: true
         };
         //使用 count 返回特定查询的文档数 total
@@ -244,11 +244,11 @@ class Article {
         });
       },
       function (db, collection, cb) {
-        var query = {
+        let query = {
           type: type
         };
         if (search) {
-          var key = new RegExp(search, "i");
+          let key = new RegExp(search, "i");
           query.title = key;
         }
         //使用 count 返回特定查询的文档数 total
@@ -287,11 +287,11 @@ class Article {
         });
       },
       function (db, collection, cb) {
-        var query = {
+        let query = {
           userid: userid
         };
         if (search) {
-          var key = new RegExp(search, "i");
+          let key = new RegExp(search, "i");
           query.title = key;
         }
         //使用 count 返回特定查询的文档数 total
@@ -329,11 +329,11 @@ class Article {
         });
       },
       function (db, collection, cb) {
-        var query = {
+        let query = {
           'collections': userid
         };
         if (search) {
-          var key = new RegExp(search, "i");
+          let key = new RegExp(search, "i");
           query.title = key;
         }
         //使用 count 返回特定查询的文档数 total

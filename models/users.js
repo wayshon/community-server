@@ -1,13 +1,13 @@
-var ObjectID = require('mongodb').ObjectID,
+let ObjectID = require('mongodb').ObjectID,
     async = require('async');
 
 //对用户账号的数据库存取操作
-var Db = require('./db');
-var poolModule = require('generic-pool');
-var pool = poolModule.Pool({
+let Db = require('./db');
+let poolModule = require('generic-pool');
+let pool = poolModule.Pool({
   name     : 'mongoPool',
   create   : function(callback) {
-    var mongodb = Db();
+    let mongodb = Db();
     mongodb.open(function (err, db) {
       callback(err, db);
     })
@@ -25,7 +25,7 @@ var pool = poolModule.Pool({
 class User {
   /**保存用户 */
   save(_user, callback) {
-    var user = {
+    let user = {
         subscribe: _user.subscribe, 
         openid: _user.openid, 
         nickname: _user.nickname, 

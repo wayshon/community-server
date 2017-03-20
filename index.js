@@ -1,24 +1,24 @@
-var express = require('express');
-var path = require('path');
-// var favicon = require('serve-favicon');
-var logger = require('morgan');   //开发环境用morgan  生产环境用 express-logger
-var cookieParser = require('cookie-parser');
-var bodyParser = require('body-parser');
+let express = require('express');
+let path = require('path');
+// let favicon = require('serve-favicon');
+let logger = require('morgan');   //开发环境用morgan  生产环境用 express-logger
+let cookieParser = require('cookie-parser');
+let bodyParser = require('body-parser');
 
 //jwt
-var expressJwt = require("express-jwt");
-var jwt = require("jsonwebtoken");
+let expressJwt = require("express-jwt");
+let jwt = require("jsonwebtoken");
 
 //打印日志到本地文件
-var fs = require('fs');
-var accessLog = fs.createWriteStream('./logs/access.log', {flags: 'a'});
-var errorLog = fs.createWriteStream('./logs/error.log', {flags: 'a'});
+let fs = require('fs');
+let accessLog = fs.createWriteStream('./logs/access.log', {flags: 'a'});
+let errorLog = fs.createWriteStream('./logs/error.log', {flags: 'a'});
 
-var app = express();
+let app = express();
 app.set('port', process.env.PORT || 8899);
 
 //数据库
-var settings = require('./config/settings');     //数据库名与端口号对象
+let settings = require('./config/settings');     //数据库名与端口号对象
 
 // view engine setup
 app.set('views', path.join(__dirname, 'views'));
@@ -48,39 +48,38 @@ app.all('*', function(req, res, next) {
 //   credentialsRequired: false,
 //   getToken: function fromHeader (req) {
 //     // if (req.headers.Authorization) {
-//     //   var decoded = jwt.verify(req.headers.Authorization, settings.jwtSecret);
+//     //   let decoded = jwt.verify(req.headers.Authorization, settings.jwtSecret);
 //     //   console.log(decoded)
 //     // if (decoded.exp <= Date.now()) {
 //     //   res.end('Access token has expired', 400);
 //     // } else {
-//     //   global.user = decoded.user;
+//     //   req.user = decoded.user;
 //     // }
 //     //   return req.headers.Authorization;
 //     // } else {
-//     //   var err = new Error()
+//     //   let err = new Error()
 //     //   err.name = "UnauthorizedError"
 //     //   throw err
 //     // }
 
 //     if (req.query && req.query.token) {
-//       var decoded;
+//       let decoded;
 //       try {
 //         decoded = jwt.verify(req.query.token, settings.jwtSecret);
 //       } catch(err) {
 //         // console.log(err)
-//         var err = new Error()
+//         let err = new Error()
 //         err.name = "UnauthorizedError"
 //         throw err
 //       }
-//       console.log(decoded)
 //       if (decoded.exp <= Date.now()) {
-//         res.end('Access token has expired', 400);
+//         res.end('Access token has expired', 403);
 //       } else {
-//         global.user = decoded.user;
+//         req.user = decoded.user;
 //       }
 //       return req.query.token;
 //     } else {
-//       var err = new Error()
+//       let err = new Error()
 //       err.name = "UnauthorizedError"
 //       throw err
 //       return null
@@ -93,14 +92,14 @@ app.use(function (err, req, res, next) {
   if (err.name === "UnauthorizedError") {
     res.status(401).send("invalid token");
   } else {
-    var meta = '[' + new Date() + '] ' + req.url + '\n';
+    let meta = '[' + new Date() + '] ' + req.url + '\n';
     errorLog.write(meta + err.stack + '\n');
     next();
   }
 });
 
 //路由控制器
-var routes = require('./routes/api');
+let routes = require('./routes/api');
 routes(app);
 
 //定制404页面

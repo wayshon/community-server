@@ -1,5 +1,5 @@
 //连接数据库
-var settings = require('../config/settings'),
+let settings = require('../config/settings'),
         Db = require('mongodb').Db,
         Connection = require('mongodb').Connection,
         Server = require('mongodb').Server;

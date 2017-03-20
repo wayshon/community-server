@@ -19,7 +19,7 @@ class Tools {
     }
     //是空对象
     isEmptyObject(obj) {
-        for (var key in obj) {
+        for (let key in obj) {
             return false
         };
         return true

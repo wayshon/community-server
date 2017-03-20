@@ -1,9 +1,9 @@
-var Message = require('../models/messages'),
+let Message = require('../models/messages'),
     tools = require('../config/tools'),
     moment = require('moment');
 
 // 向前台返回JSON方法的简单封装
-var jsonWrite = function (res, ret) {
+let jsonWrite = function (res, ret) {
     if (typeof ret === 'undefined') {
         res.json({
             code: '500',
@@ -16,7 +16,7 @@ var jsonWrite = function (res, ret) {
 
 class MessageDao {
     addMessage(req, res, next) {
-        var newMessage = {
+        let newMessage = {
             userid: '58ca89c769f5670763e062ca',
             avatar: '_message.avatar',
             nickname: '_message.nickname',
@@ -55,7 +55,7 @@ class MessageDao {
         //     jsonWrite(res, user);
         // })
 
-        var id = 777;
+        let id = 777;
         Message.get(id, function (err, listOb, total) {
             if (err) {
                 jsonWrite(res, undefined);
