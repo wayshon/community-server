@@ -1,6 +1,9 @@
-let async = require('async');
+let async = require('async'),
+    moment = require('moment'),
+    tools = require('../config/tools');
 
 //对用户账号的数据库存取操作
+let ObjectID = require('mongodb').ObjectID;
 let Db = require('./db');
 let poolModule = require('generic-pool');
 let pool = poolModule.Pool({
@@ -20,9 +23,8 @@ let pool = poolModule.Pool({
   log      : false
 });
 
-
 class Message {
-  getList(_id, page, limit, callback) {
+  getList(userid, page, limit, callback) {
     async.waterfall([
       function (cb) {
         pool.acquire(function (err, db) {
@@ -30,12 +32,46 @@ class Message {
         });
       },
       function (db, cb) {
+        db.collection('readtimes', function (err, collection) {
+          cb(err, db, collection);
+        });
+      },
+      function (db, collection, cb) {
+        collection.findOne({
+          userid: userid
+        }, function (err, readtime) {
+          cb(err, db, collection, readtime);
+        });
+      },
+      function (db, collection, readtime, cb) {
+        if (tools.isBlank(readtime)) {
+          collection.insert({
+              userid: userid,
+              time: moment().format('YYYY-MM-DD HH:mm:ss')
+            }, {
+            safe: true
+          }, function (err) {
+            cb(err, db);
+          });
+        } else {
+          collection.update({
+            "_id": new ObjectID(readtime._id)
+          }, {
+            $set: {
+              time: moment().format('YYYY-MM-DD HH:mm:ss')
+            }
+          } , function (err) {
+              cb(err, db);
+          });
+        }
+      },
+      function (db, cb) {
         db.collection('messages', function (err, collection) {
           cb(err, db, collection);
         });
       },
       function (db, collection, cb) {
-        let query = {userid: _id};
+        let query = {userid: userid};
         collection.count(query, function (err, total) {
           cb(err, query, db, collection, total);
         });
@@ -53,6 +89,32 @@ class Message {
     ],function (err, db, messages, total) {
       pool.release(db);
       callback(err, messages, total);
+    });
+  }
+
+  /**新的集合 readtimes */
+  saveReadTime(readtime, callback) {
+    async.waterfall([
+      function (cb) {
+        pool.acquire(function (err, db) {
+          cb(err, db);
+        });
+      },
+      function (db, cb) {
+        db.collection('readtimes', function (err, collection) {
+          cb(err, db, collection);
+        });
+      },
+      function (db, collection, cb) {
+        collection.insert(readtime, {
+          safe: true
+        }, function (err) {
+          cb(err, db);
+        });
+      }
+    ], function (err, db) {
+      pool.release(db);
+      callback(err);
     });
   }
 };

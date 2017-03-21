@@ -1,6 +1,5 @@
 let Message = require('../models/messages'),
-    tools = require('../config/tools'),
-    moment = require('moment');
+    tools = require('../config/tools');
 
 // 向前台返回JSON方法的简单封装
 let jsonWrite = function (res, ret) {
@@ -24,7 +23,7 @@ class MessageDao {
         //     })
         //     return;
         // }
-        let articleid = req.query.articleid,
+        let userid = req.query.userid,
             page = req.query.page || 1,
             limit = req.query.limit || 10;
         Message.getList("58ca89c769f5670763e062ca", page, limit, function (err, listOb, total) {

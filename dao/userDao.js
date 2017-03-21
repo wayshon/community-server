@@ -95,6 +95,63 @@ class UserDao {
           });
         });
     }
+
+    getUserInfo(req, res, next) {
+        // if (tools.isBlank(req.user)) {
+        //     jsonWrite(res, {
+        //         code: 500,
+        //         msg: '尚未登录'
+        //     })
+        //     return;
+        // }
+        User.userInfo("58ca89c769f5670763e062ca", function (err, user) {
+            if (err) {
+                jsonWrite(res, undefined);
+                return;
+            }
+            if (tools.isBlank(user)) {
+                jsonWrite(res, {
+                    code: 500,
+                    msg: '用户不存在'
+                });
+                return;
+            }
+            jsonWrite(res, {
+                code: 200,
+                msg: '获取成功',
+                ob: user
+            });
+        })
+    }
+
+    getOtherInfo(req, res, next) {
+        // if (tools.isBlank(req.userid)) {
+        //     jsonWrite(res, {
+        //         code: 500,
+        //         msg: '缺少userid'
+        //     })
+        //     return;
+        // }
+
+        User.otherInfo("58ca89c769f5670763e062ca", function (err, user) {
+            if (err) {
+                jsonWrite(res, undefined);
+                return;
+            }
+            if (tools.isBlank(user)) {
+                jsonWrite(res, {
+                    code: 500,
+                    msg: '用户不存在'
+                });
+                return;
+            }
+            jsonWrite(res, {
+                code: 200,
+                msg: '获取成功',
+                ob: user
+            });
+        })
+    }
 }
 
 module.exports = new UserDao()

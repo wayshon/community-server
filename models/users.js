@@ -1,5 +1,6 @@
 let ObjectID = require('mongodb').ObjectID,
-    async = require('async');
+    async = require('async'),
+    moment = require('moment');
 
 //对用户账号的数据库存取操作
 let Db = require('./db');
@@ -24,24 +25,7 @@ let pool = poolModule.Pool({
 
 class User {
   /**保存用户 */
-  save(_user, callback) {
-    let user = {
-        subscribe: _user.subscribe, 
-        openid: _user.openid, 
-        nickname: _user.nickname, 
-        sex: _user.sex, 
-        language: _user.language, 
-        city: _user.city, 
-        province: _user.province, 
-        country: _user.country, 
-        headimgurl: _user.headimgurl, 
-        subscribe_time: _user.subscribe_time,
-        unionid: _user.unionid,
-        remark: _user.remark,
-        groupid: _user.groupid,
-        phone: _user.phone
-    }
-
+  save(user, callback) {
     async.waterfall([
       function (cb) {
         pool.acquire(function (err, db) {
@@ -76,10 +60,6 @@ class User {
       },
       function (db, cb) {
         db.collection('users', function (err, collection) {
-          if(err) {
-            console.log('--------------')
-            console.log(err)
-          }
           cb(err, db, collection);
         });
       },
@@ -120,6 +100,129 @@ class User {
     ], function (err, db) {
       pool.release(db);
       callback(err);
+    });
+  }
+
+  userInfo(userid, callback) {
+    async.waterfall([
+      function (cb) {
+        pool.acquire(function (err, db) {
+          cb(err, db);
+        });
+      },
+      function (db, cb) {
+        db.collection('users', function (err, collection) {
+          cb(err, db, collection);
+        });
+      },
+      function (db, collection, cb) {
+        collection.findOne({
+          "_id": new ObjectID(userid)
+        }, function (err, user) {
+          cb(err, db, user);
+        });
+      },
+      function (db, user, cb) {
+        db.collection('readtimes', function (err, collection) {
+          cb(err, db, collection, user);
+        });
+      },
+      function (db, collection, user, cb) {
+        collection.findOne({
+          userid: userid
+        }, function (err, readtime) {
+          let time;
+          if (readtime && readtime.time) {
+            time = readtime.time;
+          } else {
+            time = moment().format('YYYY-MM-DD HH:mm:ss');
+          }
+          cb(err, db, user, time);
+        });
+      },
+      function (db, user, time, cb) {
+        db.collection('messages', function (err, collection) {
+          cb(err, db, collection, user, time);
+        });
+      },
+      function (db, collection, user, time, cb) {
+        collection.count({
+          "date" : {$gte : time}
+        }, function (err, messageNum) {
+          user.messageNum = messageNum;
+          cb(err, db, user);
+        });
+      },
+      function (db, user, cb) {
+        db.collection('articles', function (err, collection) {
+          cb(err, db, collection, user);
+        });
+      },
+      function (db, collection, user, cb) {
+        collection.count({
+          userid: userid
+        }, function (err, articleNum) {
+          user.articleNum = articleNum;
+          cb(err, db, collection, user);
+        });
+      },
+      function (db, collection, user, cb) {
+        collection.count({
+            collections: userid
+          }, function (err, collectionNum) {
+            user.collectionNum = collectionNum;
+          cb(err, db, user);
+        });
+      }
+    ],function (err, db, user) {
+      pool.release(db);
+      callback(err, user);
+    });
+  }
+
+  otherInfo(userid, callback) {
+    async.waterfall([
+      function (cb) {
+        pool.acquire(function (err, db) {
+          cb(err, db);
+        });
+      },
+      function (db, cb) {
+        db.collection('users', function (err, collection) {
+          cb(err, db, collection);
+        });
+      },
+      function (db, collection, cb) {
+        collection.findOne({
+          "_id": new ObjectID(userid)
+        }, function (err, user) {
+          cb(err, db, user);
+        });
+      },
+      function (db, user, cb) {
+        db.collection('articles', function (err, collection) {
+          cb(err, db, collection, user);
+        });
+      },
+      function (db, collection, user, cb) {
+        collection.count({
+          userid: userid
+        }, function (err, articleNum) {
+          user.articleNum = articleNum;
+          cb(err, db, collection, user);
+        });
+      },
+      function (db, collection, user, cb) {
+        collection.count({
+            collections: userid
+          }, function (err, collectionNum) {
+            user.collectionNum = collectionNum;
+          cb(err, db, user);
+        });
+      }
+    ],function (err, db, user) {
+      pool.release(db);
+      callback(err, user);
     });
   }
 };

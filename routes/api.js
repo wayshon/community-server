@@ -142,4 +142,12 @@ module.exports = app => {
         starDao.getStarList(req, res, next)
     });
 
+    app.get('/t23', (req, res, next) => {
+        userDao.getOtherInfo(req, res, next)
+    });
+
+    app.get('/t24', (req, res, next) => {
+        userDao.getUserInfo(req, res, next)
+    });
+
 }
