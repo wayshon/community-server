@@ -13,6 +13,19 @@ let jsonWrite = function (res, ret) {
     }
 };
 
+//获取局域网ip
+var os = require('os'),
+    iptable = {},
+    ifaces = os.networkInterfaces();
+for (var dev in ifaces) {
+    ifaces[dev].forEach(function (details, alias) {
+        if (details.family == 'IPv4') {
+            iptable[dev + (alias ? ':' + alias : '')] = details.address;
+        }
+    });
+}
+// console.log(iptable['en0:1']);
+
 class UserDao {
     addUser(req, res, next) {
         if (tools.isBlank(req.body.openid)) {
@@ -151,6 +164,32 @@ class UserDao {
                 ob: user
             });
         })
+    }
+    /**上传图片 */
+    uploadImg(req, res, next) {
+        var dataBuffer = new Buffer(req.body.img, 'base64'),
+            userid = req.user.id,
+            name = req.body.imgName || Date.now(),
+            imgpath = "images/" + userid + "/" + name + ".png",
+            absolutePath = "http://" + iptable['en0:1'] + ":8899/" + imgpath;
+        if (!fs.existsSync("./public/images/" + userid)) {
+            fs.mkdirSync("./public/images/" + userid);
+        }
+
+        fs.writeFile("./public/" + imgpath, dataBuffer, function (err) {
+            if (err) {
+                console.log(err)
+                jsonWrite(res, undefined)
+            } else {
+                jsonWrite(res, {
+                    code: 200,
+                    ob: {
+                        path: absolutePath
+                    },
+                    msg: "上传成功"
+                });
+            }
+        });
     }
 }
 

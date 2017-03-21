@@ -425,6 +425,33 @@ class Article {
       callback(err);
     });
   }
+
+  getImgs(_id, callback) {
+    async.waterfall([
+      function (cb) {
+        pool.acquire(function (err, db) {
+          cb(err, db);
+        });
+      },
+      function (db, cb) {
+        db.collection('articles', function (err, collection) {
+          cb(err, db, collection);
+        });
+      },
+      function (db, collection, cb) {
+        collection.findOne({
+          "_id": new ObjectID(_id)
+        },{
+          "imgs": true
+        },function (err, imgs) {
+          cb(err, db, imgs);
+        });
+      }
+    ],function (err, db, imgs) {
+      pool.release(db);
+      callback(err, imgs);
+    });
+  }
   
 }
 

@@ -1,6 +1,7 @@
 let Article = require('../models/articles'),
     tools = require('../config/tools'),
-    moment = require('moment');
+    moment = require('moment'),
+    fs = require('fs');
 
 let jsonWrite = function (res, ret) {
     if (typeof ret === 'undefined') {
@@ -85,7 +86,12 @@ class ArticleDao {
         //     })
         //     return;
         // }
-
+        let imgs = [];
+        Article.getImgs('58cf87a97639d925b8fe298b', function (err, imgs) {
+            if (imgs) {
+                imgs = imgs;
+            }
+        })
         Article.remove('58cf87a97639d925b8fe298b', function (err) {
           if (err) {
             jsonWrite(res, undefined);
@@ -95,6 +101,10 @@ class ArticleDao {
               code: 200,
               msg: '删除成功'
           });
+          /**删除文章包含的图片 */
+          imgs.forEach(v => {
+              fs.unlink(v);
+          })
         });
     }
 
