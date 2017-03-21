@@ -37,7 +37,7 @@ class StarDao {
             userid: '58ca89c769f5670763e062ca',
             avatar: 'req.user.avatar',
             nickname: 'req.user.nickname',
-            articleid: '58cf87a97639d925b8fe298b',
+            articleid: '58d07ad808ab9205e7b03c1f',
             date: moment().format('YYYY-MM-DD HH:mm:ss')
         }
 
@@ -72,8 +72,8 @@ class StarDao {
         //     })
         //     return;
         // }
-
-        Star.remove('58cf87a97639d925b8fe298b', '58ca89c769f5670763e062ca', function (err) {
+        /**articleid, userid */
+        Star.remove('58d07ad808ab9205e7b03c1f', '58ca89c769f5670763e062ca', function (err) {
           if (err) {
             jsonWrite(res, undefined);
             return;
@@ -97,7 +97,7 @@ class StarDao {
         let articleid = req.query.articleid,
             page = req.query.page || 1,
             limit = req.query.limit || 10;
-        Star.getList("58cf87a97639d925b8fe298b", page, limit, function (err, listOb, total) {
+        Star.getList("58d07ad808ab9205e7b03c1f", page, limit, function (err, listOb, total) {
             if (err) {
                 jsonWrite(res, undefined);
                 return;
@@ -106,7 +106,8 @@ class StarDao {
                 code: 200,
                 msg: '获取成功',
                 listOb: listOb,
-                total: total
+                total: total,
+                isLastpage: page * limit >= total ? true : false
             });
         })
     }

@@ -50,7 +50,7 @@ class CommentDao {
             nickname: 'req.body.nickname',
             avatar: 'req.body.avatar',
             level: 'req.body.level',
-            articleid: "58cf87a97639d925b8fe298b",
+            articleid: "58d07ad808ab9205e7b03c1f",
             content: 'req.body.content',
             date: moment().format('YYYY-MM-DD HH:mm:ss'),
             starNum: 0,
@@ -103,7 +103,7 @@ class CommentDao {
         let articleid = req.query.articleid,
             page = req.query.page || 1,
             limit = req.query.limit || 10;
-        Comment.getList("58cf87a97639d925b8fe298b", page, limit, function (err, listOb, total) {
+        Comment.getList("58d07ad808ab9205e7b03c1f", page, limit, function (err, listOb, total) {
             if (err) {
                 jsonWrite(res, undefined);
                 return;
@@ -112,7 +112,8 @@ class CommentDao {
                 code: 200,
                 msg: '获取成功',
                 listOb: listOb,
-                total: total
+                total: total,
+                isLastpage: page * limit >= total ? true : false
             });
         })
     }

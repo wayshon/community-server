@@ -133,8 +133,7 @@ class Comment {
           content: true
         },function (err, message) {
           message.articleid = message._id;
-          message.authorid = message.userid;
-          message.userid = comment.userid;
+          message.fromid = comment.userid;
           message.comment = comment.content;
           message.date = comment.date;
           message.star = false;

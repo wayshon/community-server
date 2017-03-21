@@ -64,7 +64,7 @@ var message = {
     userid: -1,
     avatar: '',
     nickname: '',
-    authorid: -1,
+    fromid: -1,
     articleid: -1,
     content: '',
     id: -1,

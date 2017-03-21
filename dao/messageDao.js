@@ -15,48 +15,19 @@ let jsonWrite = function (res, ret) {
 };
 
 class MessageDao {
-    addMessage(req, res, next) {
-        let newMessage = {
-            userid: '58ca89c769f5670763e062ca',
-            avatar: '_message.avatar',
-            nickname: '_message.nickname',
-            authorid: 777,
-            articleid: 888,
-            content: '_message.content',
-            comment: '_message.comment',
-            date: moment().format('YYYY-MM-DD HH:mm:ss'),
-            star: false
-        }
-        Message.save(newMessage, function (err, user) {
-          if (err) {
-            jsonWrite(res, undefined);
-            return;
-          }
-          jsonWrite(res, {
-              code: 200,
-              msg: '评论成功'
-          });
-        });
-    }
 
     getMessageList(req, res, next) {
-        // if (!req.query ||tools.isBlank(req.query.id)) {
+        // if (!req.query ||tools.isBlank(req.query.userid)) {
         //     jsonWrite(res, {
         //         code: 500,
-        //         msg: '缺少id'
+        //         msg: '缺少userid'
         //     })
         //     return;
         // }
-        // Message.get(req.query.id, function (err, user) {
-        //     if (err) {
-        //         jsonWrite(res, undefined);
-        //         return;
-        //     }
-        //     jsonWrite(res, user);
-        // })
-
-        let id = 777;
-        Message.get(id, function (err, listOb, total) {
+        let articleid = req.query.articleid,
+            page = req.query.page || 1,
+            limit = req.query.limit || 10;
+        Message.getList("58ca89c769f5670763e062ca", page, limit, function (err, listOb, total) {
             if (err) {
                 jsonWrite(res, undefined);
                 return;
@@ -65,7 +36,8 @@ class MessageDao {
                 code: 200,
                 msg: '获取成功',
                 listOb: listOb,
-                total: total
+                total: total,
+                isLastpage: page * limit >= total ? true : false
             });
         })
     }

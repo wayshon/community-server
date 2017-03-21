@@ -46,7 +46,7 @@ class ArticleDao {
         // }
 
         let newArticle = {
-            userid: '原始的',
+            userid: '58ca89c769f5670763e062ca',
             nickname: '原始的',
             avatar: '原始的',
             level: '原始的',
@@ -191,20 +191,21 @@ class ArticleDao {
     getArticleList(req, res, next) {
         let search = req.query.search || '',
             page = req.query.page || 1,
-            limit = req.query.limit || 8;
+            limit = req.query.limit || 14;
         Article.getList(search, page, limit, function (err, listOb, total) {
             if (err) {
                 jsonWrite(res, undefined);
                 return;
             }
             
-            judgeCollected(listOb)
+            judgeCollected(req, listOb)
             
             jsonWrite(res, {
                 code: 200,
                 msg: '获取成功',
                 listOb: listOb,
-                total: total
+                total: total,
+                isLastpage: page * limit >= total ? true : false
             });
         })
     }
@@ -218,13 +219,14 @@ class ArticleDao {
                 return;
             }
 
-            judgeCollected(listOb)
+            judgeCollected(req, listOb)
 
             jsonWrite(res, {
                 code: 200,
                 msg: '获取成功',
                 listOb: listOb,
-                total: total
+                total: total,
+                isLastpage: page * limit >= total ? true : false
             });
         })
     }
@@ -249,13 +251,14 @@ class ArticleDao {
                 return;
             }
 
-            judgeCollected(listOb)
+            judgeCollected(req, listOb)
 
             jsonWrite(res, {
                 code: 200,
                 msg: '获取成功',
                 listOb: listOb,
-                total: total
+                total: total,
+                isLastpage: page * limit >= total ? true : false
             });
         })
     }
@@ -280,13 +283,14 @@ class ArticleDao {
                 return;
             }
 
-            judgeCollected(listOb)
+            judgeCollected(req, listOb)
 
             jsonWrite(res, {
                 code: 200,
                 msg: '获取成功',
                 listOb: listOb,
-                total: total
+                total: total,
+                isLastpage: page * limit >= total ? true : false
             });
         })
     }
@@ -311,13 +315,14 @@ class ArticleDao {
                 return;
             }
 
-            judgeCollected(listOb)
+            judgeCollected(req, listOb)
             
             jsonWrite(res, {
                 code: 200,
                 msg: '获取成功',
                 listOb: listOb,
-                total: total
+                total: total,
+                isLastpage: page * limit >= total ? true : false
             });
         })
     }
@@ -406,7 +411,7 @@ class ArticleDao {
 module.exports = new ArticleDao()
 
 /**判断是否已收藏 */
-function judgeCollected(listOb) {
+function judgeCollected(req, listOb) {
     if (!req.user) {
         listOb.forEach(article => {
             article.isCollected = false;

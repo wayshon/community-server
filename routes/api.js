@@ -5,11 +5,33 @@ let userDao = require('../dao/userDao'),
     messageDao = require('../dao/messageDao'),
     settings = require('../config/settings'),
     jwt = require("jsonwebtoken"),
-    moment = require("moment");
+    moment = require("moment"),
+    request = require('request');
 
 module.exports = app => {
 
-    app.get('/login', (req, res, next) => {
+    app.get('/r', (req, res, next) => {
+        var options = {
+            // headers: {"Connection": "close"},
+            url: "http://localhost:9988/t",
+            method: "get",
+            json: true,
+            body: {
+                ha: "haha"
+            }
+        };
+
+        function callback(error, response, data) {
+            if (!error && response.statusCode == 200) {
+                console.log('------接口数据------',data);
+                res.json(data)
+            }
+        }
+
+        request(options, callback);
+    });
+
+    app.get('/l', (req, res, next) => {
         let user = {
             id: 666,
             name: 'name',
@@ -28,7 +50,7 @@ module.exports = app => {
         });
     });
 
-    app.get('/t', (req, res, next) => {
+    app.get('/w', (req, res, next) => {
         res.json({
             code: 200,
             msg: 'ok',
@@ -102,10 +124,6 @@ module.exports = app => {
 
     app.get('/t17', (req, res, next) => {
         commentDao.getCommentList(req, res, next)
-    });
-
-    app.get('/t18', (req, res, next) => {
-        messageDao.addMessage(req, res, next)
     });
 
     app.get('/t19', (req, res, next) => {

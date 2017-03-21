@@ -1,4 +1,5 @@
 let ObjectID = require('mongodb').ObjectID;
+let tools = require('../config/tools');
 let Db = require('./db');
 let async = require('async');
 let poolModule = require('generic-pool');
@@ -62,9 +63,8 @@ class Star {
           nickname: true,
           content: true
         },function (err, message) {
-          message.articleid = message._id;
-          message.authorid = message.userid;
-          message.userid = star.userid;
+          message.articleid = message._id.toString();
+          message.fromid = star.userid;
           message.comment = null;
           message.date = star.date;
           message.star = true;
@@ -80,11 +80,56 @@ class Star {
         });
       },
       function (db, collection, message, cb) {
-        collection.insert(message, {
-          safe: true
-        }, function (err) {
-          cb(err, db);
+        collection.findOne({
+          fromid: message.fromid,
+          userid: message.userid
+        }, function (err, doc) {
+          cb(err, db, collection, message, doc);
         });
+      },
+      // function (db, collection, message, cb) {
+      //   let query = {
+      //     fromid: message.fromid,
+      //     userid: message.userid
+      //   }
+      //   collection.count(query, function (err, total) {
+      //     if (err) {
+      //       cb(err, db);
+      //     } else if (total > 0) {
+      //       collection.update({
+      //         "_id": new ObjectID(_articleid)
+      //       }, {
+      //         $push: {"collections": _userid}
+      //       } , function (err) {
+      //           cb(err, db);
+      //       });
+      //     } else {
+      //       collection.insert(message, {
+      //         safe: true
+      //       }, function (err) {
+      //         cb(err, db);
+      //       });
+      //     }
+      //   });
+      // },
+      function (db, collection, message, doc, cb) {
+        if (tools.isBlank(doc)) {
+          collection.insert(message, {
+            safe: true
+          }, function (err) {
+            cb(err, db);
+          });
+        } else {
+          collection.update({
+            "_id": new ObjectID(doc._id)
+          }, {
+            $set: {
+              date: message.date
+            }
+          } , function (err) {
+              cb(err, db);
+          });
+        }
       }
     ], function (err, db) {
       pool.release(db);
