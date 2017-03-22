@@ -81,3 +81,44 @@ var star = {
     id: '',
     date: ''
 }
+
+var newVote = {
+            _id: '',
+            userid: '58ca89c769f5670763e062ca',
+            nickname: '原始的',
+            avatar: '原始的',
+            level: '初学乍练',
+            startime: moment().format('YYYY-MM-DD HH:mm:ss'),
+            endtime: '2017-03-22',
+            // state: 1,   //0 结束，1 进行中
+            type: '单选',
+            desc: '投票描述',
+            imgs: ['原始的','原始的','原始的'],
+            // total: 0,
+            choices: [
+                {
+                    name: '选项1',
+                    // count: 66,  //根据users.length
+                    // rate: '10%',    //根据users.length
+                    users: [{
+                        userid: '',
+                        nickname: '原始的',
+                        avatar: '原始的',
+                    }]
+                },{
+                    name: '选项2',
+                    count: 66,
+                    rate: '20%',
+                    users: [{
+                        userid: '',
+                        nickname: '原始的',
+                        avatar: '原始的',
+                    }]
+                }
+            ]
+        }
+
+/**
+ * 前端投票时推得body应该是index,而不是name
+ * {id,index,name}
+ */

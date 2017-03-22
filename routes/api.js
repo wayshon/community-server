@@ -3,6 +3,7 @@ let userDao = require('../dao/userDao'),
     commentDao = require('../dao/commentDao'),
     starDao = require('../dao/starDao'),
     messageDao = require('../dao/messageDao'),
+    voteDao = require('../dao/voteDao'),
     settings = require('../config/settings'),
     jwt = require("jsonwebtoken"),
     moment = require("moment"),
@@ -148,6 +149,27 @@ module.exports = app => {
 
     app.get('/t24', (req, res, next) => {
         userDao.getUserInfo(req, res, next)
+    });
+
+
+    app.get('/t100', (req, res, next) => {
+        voteDao.addVote(req, res, next)
+    });
+
+    app.get('/t101', (req, res, next) => {
+        voteDao.commitVote(req, res, next)
+    });
+
+    app.get('/t102', (req, res, next) => {
+        voteDao.getVote(req, res, next)
+    });
+
+    app.get('/t103', (req, res, next) => {
+        voteDao.getVoteList(req, res, next)
+    });
+
+    app.get('/t104', (req, res, next) => {
+        voteDao.getVoteUserList(req, res, next)
     });
 
 }

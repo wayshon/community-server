@@ -231,7 +231,7 @@ class Star {
       if (total == 0) {
         callback(err, false);
       } else {
-          callback(err, true);
+        callback(err, true);
       }
     });
   }
