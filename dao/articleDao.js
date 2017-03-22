@@ -416,6 +416,30 @@ class ArticleDao {
         });
     }
 
+    getTopList(req, res, next) {
+        Article.getTopVoteList(function (err, voteList) {
+            let limit = 3;
+            if (voteList.length == 1)
+                limit = 2;
+            Article.getTopArticleList(limit, function (err, articleList) {
+                if (err) {
+                    jsonWrite(res, undefined);
+                    return;
+                }
+                
+                let listOb = voteList.concat(articleList)
+                
+                jsonWrite(res, {
+                    code: 200,
+                    msg: '获取成功',
+                    listOb: listOb,
+                    total: listOb.length,
+                    isLastpage: true
+                });
+            })
+        })
+    }
+
 }
 
 module.exports = new ArticleDao()

@@ -172,4 +172,8 @@ module.exports = app => {
         voteDao.getVoteUserList(req, res, next)
     });
 
+    app.get('/t105', (req, res, next) => {
+        articleDao.getTopList(req, res, next)
+    });
+
 }

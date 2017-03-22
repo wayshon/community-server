@@ -452,6 +452,55 @@ class Article {
       callback(err, imgs);
     });
   }
+
+  /**获取顶部3条 */
+  getTopArticleList(limit, callback) {
+    async.waterfall([
+      function (cb) {
+        pool.acquire(function (err, db) {
+          cb(err, db);
+        });
+      },
+      function (db, cb) {
+        db.collection('articles', function (err, collection) {
+          cb(err, db, collection);
+        });
+      },
+      function (db, collection, cb) {
+        collection.find({}).limit(limit).sort({
+          date: -1
+        }).toArray(function (err, docs) {
+          cb(err, db, docs);
+        });
+      }
+    ], function (err, db, docs) {
+      pool.release(db);
+      callback(err, docs);
+    });
+  }
+
+  getTopVoteList(callback) {
+    async.waterfall([
+      function (cb) {
+        pool.acquire(function (err, db) {
+          cb(err, db);
+        });
+      },
+      function (db, cb) {
+        db.collection('votes', function (err, collection) {
+          cb(err, db, collection);
+        });
+      },
+      function (db, collection, cb) {
+        collection.find({}).limit(1).toArray(function (err, votes) {
+          cb(err, db, votes);
+        });
+      }
+    ], function (err, db, votes) {
+      pool.release(db);
+      callback(err, votes);
+    });
+  }
   
 }
 
