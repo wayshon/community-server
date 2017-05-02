@@ -1,7 +1,8 @@
 let Star = require('../models/stars'),
     tools = require('../config/tools'),
     moment = require('moment'),
-    shortid = require('shortid');
+    shortid = require('shortid'),
+    ObjectID = require('mongodb').ObjectID;
 
 // 向前台返回JSON方法的简单封装
 let jsonWrite = function (res, ret) {
@@ -17,27 +18,29 @@ let jsonWrite = function (res, ret) {
 
 class StarDao {
     addStar(req, res, next) {
-        // if (tools.isBlank(req.body.articleid)) {
-        //     jsonWrite(res, {
-        //         code: 500,
-        //         msg: '缺少articleid'
-        //     })
-        //     return;
-        // }
+        if (tools.isBlank(req.body.articleid)) {
+            jsonWrite(res, {
+                code: 500,
+                msg: '缺少articleid'
+            })
+            return;
+        }
 
-        // let newStar = {
-        //     userid: req.user.id,
-        //     avatar: req.user.avatar,
-        //     nickname: req.user.nickname,
-        //     articleid: req.query.articleid,
-        //     date: moment().format('YYYY-MM-DD HH:mm:ss')
-        // }
+        try {
+          new ObjectID(req.body.articleid)
+        } catch(err) {
+          jsonWrite(res, {
+                code: 500,
+                msg: 'articleid不正确'
+            })
+            return;
+        }
 
         let newStar = {
-            userid: '58ca89c769f5670763e062ca',
-            avatar: 'req.user.avatar',
-            nickname: 'req.user.nickname',
-            articleid: '58d07ad808ab9205e7b03c1f',
+            userid: req.users.id,
+            avatar: req.users.avatar,
+            nickname: req.users.name,
+            articleid: req.body.articleid,
             date: moment().format('YYYY-MM-DD HH:mm:ss')
         }
 
@@ -49,6 +52,13 @@ class StarDao {
                 });
             } else {
                 Star.save(newStar, function (err, user) {
+                    if (err == 'noArticle') {
+                        jsonWrite(res, {
+                            code: 500,
+                            msg: '文章不存在'
+                        });
+                        return;
+                    }
                     if (err) {
                         jsonWrite(res, undefined);
                         return;
@@ -65,15 +75,25 @@ class StarDao {
     }
 
     removeStar(req, res, next) {
-        // if (tools.isBlank(req.query.starid)) {
-        //     jsonWrite(res, {
-        //         code: 500,
-        //         msg: '缺少starid'
-        //     })
-        //     return;
-        // }
-        /**articleid, userid */
-        Star.remove('58d07ad808ab9205e7b03c1f', '58ca89c769f5670763e062ca', function (err) {
+        if (tools.isBlank(req.query.articleid)) {
+            jsonWrite(res, {
+                code: 500,
+                msg: '缺少articleid'
+            })
+            return;
+        }
+
+        try {
+          new ObjectID(req.query.articleid)
+        } catch(err) {
+          jsonWrite(res, {
+                code: 500,
+                msg: 'articleid不正确'
+            })
+            return;
+        }
+        
+        Star.remove(req.query.articleid, req.users.id, function (err) {
           if (err) {
             jsonWrite(res, undefined);
             return;
@@ -86,18 +106,28 @@ class StarDao {
     }
 
     getStarList(req, res, next) {
-        // if (tools.isBlank(req.query.articleid)) {
-        //     jsonWrite(res, {
-        //         code: 500,
-        //         msg: '缺少articleid'
-        //     })
-        //     return;
-        // }
+        if (tools.isBlank(req.query.articleid)) {
+            jsonWrite(res, {
+                code: 500,
+                msg: '缺少articleid'
+            })
+            return;
+        }
+
+        try {
+          new ObjectID(req.query.articleid)
+        } catch(err) {
+          jsonWrite(res, {
+                code: 500,
+                msg: 'articleid不正确'
+            })
+            return;
+        }
 
         let articleid = req.query.articleid,
-            page = req.query.page || 1,
-            limit = req.query.limit || 10;
-        Star.getList("58d07ad808ab9205e7b03c1f", page, limit, function (err, listOb, total) {
+            page = parseInt(req.query.page) || 1,
+            limit = parseInt(req.query.limit) || 10;
+        Star.getList(articleid, page, limit, function (err, listOb, total) {
             if (err) {
                 jsonWrite(res, undefined);
                 return;

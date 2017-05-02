@@ -1,6 +1,7 @@
 let Vote = require('../models/votes'),
     tools = require('../config/tools'),
-    moment = require('moment');
+    moment = require('moment'),
+    ObjectID = require('mongodb').ObjectID;
 
 let jsonWrite = function (res, ret) {
     if (typeof ret === 'undefined') {
@@ -15,49 +16,74 @@ let jsonWrite = function (res, ret) {
 
 class VoteDao {
     addVote(req, res, next) {
-        
-        var newVote = {
-            userid: '58ca89c769f5670763e062ca',
-            nickname: '原始的',
-            avatar: '原始的',
-            level: '初学乍练',
-            startime: moment().format('YYYY-MM-DD HH:mm:ss'),
-            endtime: '2017-03-22',
-            type: '单选',
-            desc: '投票描述',
-            imgs: ['原始的','原始的','原始的'],
-            choices: [
-                {
-                    name: '选项1',
-                    users: []
-                },{
-                    name: '选项2',
-                    users: []
-                }
-            ]
+        console.log(req.users)
+        if (tools.isBlank(req.body.endtime)) {
+            jsonWrite(res, {
+                code: 500,
+                msg: '缺少endtime'
+            })
+            return;
+        } else if (tools.isBlank(req.body.choices) || req.body.choices.length < 2) {
+            jsonWrite(res, {
+                code: 500,
+                msg: 'choices不正确'
+            })
+            return;
         }
 
-        Vote.save(newVote, function (err) {
+        let choices = req.body.choices.map(v => {
+            let obj = {
+                name: v,
+                users: []
+            }
+            return obj;
+        })
+
+        var newVote = {
+            userid: req.users.id,
+            nickname: req.users.name,
+            avatar: req.users.avatar,
+            level: req.users.level,
+            startime: moment().format('YYYY-MM-DD HH:mm:ss'),
+            endtime: req.body.endtime,
+            type: req.body.type || '单选',
+            desc: req.body.desc || '',
+            imgs: req.body.imgs || [],
+            choices: choices
+        }
+
+        Vote.save(newVote, function (err, vote) {
           if (err) {
             jsonWrite(res, undefined);
             return;
           }
           jsonWrite(res, {
             code: 200,
-            msg: "发布成功"
+            msg: "发布成功",
+            ob: vote
           });
         });
     }
 
     getVote(req, res, next) {
-        // if (tools.isBlank(req.query.id)) {
-        //     jsonWrite(res, {
-        //         code: 500,
-        //         msg: '缺少用户id'
-        //     })
-        //     return;
-        // }
-        Vote.get("58d1df1ae631920cdc85baeb", function (err, vote) {
+        if (tools.isBlank(req.query.voteid)) {
+            jsonWrite(res, {
+                code: 500,
+                msg: '缺少voteid'
+            })
+            return;
+        }
+
+        try {
+          new ObjectID(req.query.voteid)
+        } catch(err) {
+          jsonWrite(res, {
+                code: 500,
+                msg: 'voteid不正确'
+            })
+            return;
+        }
+        Vote.get(req.query.voteid, function (err, vote) {
             if (err) {
                 jsonWrite(res, undefined);
                 return;
@@ -69,11 +95,10 @@ class VoteDao {
                 });
                 return;
             }
-
             if (vote.startime < vote.endtime) {
-                vote.state = 1;
+                vote.state = 1; //未结束
             } else {
-                vote.state = 0;
+                vote.state = 0; //已结束
             }
 
             let total = 0;
@@ -97,47 +122,89 @@ class VoteDao {
     }
 
     commitVote(req, res, next) {
+        if (tools.isBlank(req.body.voteid)) {
+            jsonWrite(res, {
+                code: 500,
+                msg: '缺少voteid'
+            })
+            return;
+        } else if (tools.isBlank(req.body.voteIndex)) {
+            jsonWrite(res, {
+                code: 500,
+                msg: '缺少voteIndex'
+            })
+            return;
+        }
+
+        try {
+          new ObjectID(req.body.voteid)
+        } catch(err) {
+          jsonWrite(res, {
+                code: 500,
+                msg: 'voteid不正确'
+            })
+            return;
+        }
         let param = {
-            voteid: "58d1df1ae631920cdc85baeb",
-            index: 0,
+            voteid: req.body.voteid,
+            index: req.body.voteIndex,
             user: {
-                userid: '58ca89c769f5670763e062ca',
-                nickname: '原始的',
-                avatar: '原始的',
-                level: '初学乍练'
+                userid: req.users.id,
+                nickname: req.users.name,
+                avatar: req.users.avatar,
+                level: req.users.level
             }
         }
 
-        Vote.hasVoted(param.voteid, param.user.userid, function (err, flag) {
-          if (err) {
-            jsonWrite(res, undefined);
-            return;
-          }
-          if (flag) {
-            jsonWrite(res, {
-                code: 500,
-                msg: '您已投过票'
-            });
-          } else {
-            Vote.commitVote(param.voteid, param, function (err) {
+        Vote.get(req.body.voteid, function (err, vote) {
+            if (err) {
+                jsonWrite(res, undefined);
+                return;
+            }
+            if (tools.isBlank(vote)) {
+                jsonWrite(res, {
+                    code: 500,
+                    msg: '投票不存在'
+                });
+                return;
+            }
+            if (param.index >= vote.choices.length) {
+                jsonWrite(res, {
+                    code: 500,
+                    msg: '参数有误'
+                });
+                return;
+            }
+            Vote.hasVoted(param.voteid, param.user.userid, function (err, flag) {
                 if (err) {
                     jsonWrite(res, undefined);
                     return;
                 }
-                jsonWrite(res, {
-                    code: 200,
-                    msg: "投票成功"
-                });
+                if (flag) {
+                    jsonWrite(res, {
+                        code: 500,
+                        msg: '您已投过票'
+                    });
+                } else {
+                    Vote.commitVote(param.voteid, param, function (err) {
+                        if (err) {
+                            jsonWrite(res, undefined);
+                            return;
+                        }
+                        jsonWrite(res, {
+                            code: 200,
+                            msg: "投票成功"
+                        });
+                    });
+                }
             });
-          }
         });
-        
     }
 
     getVoteList(req, res, next) {
         let search = req.query.search || '',
-            page = req.query.page || 1,
-            limit = req.query.limit || 2;
+            page = parseInt(req.query.page) || 1,
+            limit = parseInt(req.query.limit) || 10;
         Vote.getList(search, page, limit, function (err, listOb, total) {
             if (err) {
                 jsonWrite(res, undefined);
@@ -155,10 +222,28 @@ class VoteDao {
     }
 
     getVoteUserList(req, res, next) {
-        let userid = "58ca89c769f5670763e062ca",
-            voteid = "58d1df1ae631920cdc85baeb",
-            page = req.query.page || 1,
-            limit = req.query.limit || 10;
+        if (tools.isBlank(req.query.voteid)) {
+            jsonWrite(res, {
+                code: 500,
+                msg: '缺少voteid'
+            })
+            return;
+        }
+
+        try {
+          new ObjectID(req.query.voteid)
+        } catch(err) {
+          jsonWrite(res, {
+                code: 500,
+                msg: 'voteid不正确'
+            })
+            return;
+        }
+
+        let userid = req.users.id,
+            voteid = req.query.voteid,
+            page = parseInt(req.query.page) || 1,
+            limit = parseInt(req.query.limit) || 10;
         Vote.getVoteUserList(userid, voteid, page, limit, function (err, listOb, total) {
             if (err) {
                 jsonWrite(res, undefined);

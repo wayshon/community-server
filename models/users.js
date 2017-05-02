@@ -1,6 +1,7 @@
 let ObjectID = require('mongodb').ObjectID,
     async = require('async'),
-    moment = require('moment');
+    moment = require('moment'),
+    tools = require('../config/tools');
 
 //对用户账号的数据库存取操作
 let Db = require('./db');
@@ -46,7 +47,7 @@ class User {
       }
     ], function (err, db, user) {
       pool.release(db);
-      callback(err, user[0]);
+      callback(err, user.ops[0]);
     });
   }
 
@@ -119,6 +120,9 @@ class User {
         collection.findOne({
           "_id": new ObjectID(userid)
         }, function (err, user) {
+          if (tools.isBlank(user)) {
+            err = 'noUser'
+          }
           cb(err, db, user);
         });
       },
@@ -176,7 +180,11 @@ class User {
       }
     ],function (err, db, user) {
       pool.release(db);
-      callback(err, user);
+      if (err == 'noUser') {
+        callback(null, undefined);
+      } else {
+        callback(err, user);
+      }
     });
   }
 
@@ -196,6 +204,9 @@ class User {
         collection.findOne({
           "_id": new ObjectID(userid)
         }, function (err, user) {
+          if (tools.isBlank(user)) {
+            err = 'noUser'
+          }
           cb(err, db, user);
         });
       },
@@ -222,7 +233,11 @@ class User {
       }
     ],function (err, db, user) {
       pool.release(db);
-      callback(err, user);
+      if (err == 'noUser') {
+        callback(null, undefined);
+      } else {
+        callback(err, user);
+      }
     });
   }
 };

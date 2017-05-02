@@ -1,5 +1,6 @@
 let Message = require('../models/messages'),
-    tools = require('../config/tools');
+    tools = require('../config/tools'),
+    ObjectID = require('mongodb').ObjectID;
 
 // 向前台返回JSON方法的简单封装
 let jsonWrite = function (res, ret) {
@@ -16,17 +17,25 @@ let jsonWrite = function (res, ret) {
 class MessageDao {
 
     getMessageList(req, res, next) {
-        // if (!req.query ||tools.isBlank(req.query.userid)) {
+        // if (tools.isBlank(req.users)) {
         //     jsonWrite(res, {
         //         code: 500,
-        //         msg: '缺少userid'
+        //         msg: '尚未登录'
         //     })
         //     return;
         // }
-        let userid = req.query.userid,
-            page = req.query.page || 1,
-            limit = req.query.limit || 10;
-        Message.getList("58ca89c769f5670763e062ca", page, limit, function (err, listOb, total) {
+        // try {
+        //   new ObjectID(req.users.id)
+        // } catch(err) {
+        //   jsonWrite(res, {
+        //         code: 500,
+        //         msg: 'userid不正确'
+        //     })
+        //     return;
+        // }
+        let page = parseInt(req.query.page) || 1,
+            limit = parseInt(req.query.limit) || 10;
+        Message.getList(req.users.id, page, limit, function (err, listOb, total) {
             if (err) {
                 jsonWrite(res, undefined);
                 return;

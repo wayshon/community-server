@@ -1,7 +1,8 @@
 let Article = require('../models/articles'),
     tools = require('../config/tools'),
     moment = require('moment'),
-    fs = require('fs');
+    fs = require('fs'),
+    ObjectID = require('mongodb').ObjectID;
 
 let jsonWrite = function (res, ret) {
     if (typeof ret === 'undefined') {
@@ -16,51 +17,35 @@ let jsonWrite = function (res, ret) {
 
 class ArticleDao {
     addArticle(req, res, next) {
-        // if (tools.isBlank(req.body.type)) {
-        //     jsonWrite(res, {
-        //         code: 500,
-        //         msg: '缺少type'
-        //     })
-        //     return;
-        // } else if (tools.isBlank(req.body.content)) {
-        //     jsonWrite(res, {
-        //         code: 500,
-        //         msg: '内容不能为空'
-        //     })
-        //     return;
-        // }
-
-        // let newArticle = {
-        //     userid: req.body.userid,
-        //     nickname: req.body.nickname,
-        //     avatar: req.body.avatar,
-        //     level: req.body.level,
-        //     type: req.body.type,
-        //     title: req.body.title || '',
-        //     date: moment().format('YYYY-MM-DD HH:mm:ss'),
-        //     content: req.body.content,
-        //     commentNum: 0,
-        //     starNum: 0,
-        //     readNum: 0,
-        //     handpick: false,
-        //     imgs: req.body.imgs || []
-        // }
+        if (tools.isBlank(req.body.type)) {
+            jsonWrite(res, {
+                code: 500,
+                msg: '缺少type'
+            })
+            return;
+        } else if (tools.isBlank(req.body.content)) {
+            jsonWrite(res, {
+                code: 500,
+                msg: '内容不能为空'
+            })
+            return;
+        }
 
         let newArticle = {
-            userid: '58ca89c769f5670763e062ca',
-            nickname: '原始的',
-            avatar: '原始的',
-            level: '原始的',
-            type: '原始的',
-            title: '原始的' || '',
+            userid: req.users.id,
+            nickname: req.users.name,
+            avatar: req.users.avatar,
+            level: req.users.level,
+            type: req.body.type,
+            title: req.body.title || '',
             date: moment().format('YYYY-MM-DD HH:mm:ss'),
-            content: '原始的',
+            content: req.body.content,
             commentNum: 0,
             starNum: 0,
             readNum: 0,
             collectionNum: 0,
             handpick: false,
-            imgs: ['原始的','原始的','原始的'],
+            imgs: req.body.imgs || [],
             collections: []
         }
 
@@ -79,20 +64,30 @@ class ArticleDao {
     }
 
     removeArticle(req, res, next) {
-        // if (tools.isBlank(req.query.articleid)) {
-        //     jsonWrite(res, {
-        //         code: 500,
-        //         msg: '缺少articleid'
-        //     })
-        //     return;
-        // }
+        if (tools.isBlank(req.query.articleid)) {
+            jsonWrite(res, {
+                code: 500,
+                msg: '缺少articleid'
+            })
+            return;
+        }
+
+        try {
+          new ObjectID(req.query.articleid)
+        } catch(err) {
+          jsonWrite(res, {
+                code: 500,
+                msg: 'articleid不正确'
+            })
+            return;
+        }
         let imgs = [];
-        Article.getImgs('58cf87a97639d925b8fe298b', function (err, imgs) {
+        Article.getImgs(req.query.articleid, function (err, imgs) {
             if (imgs) {
                 imgs = imgs;
             }
         })
-        Article.remove('58cf87a97639d925b8fe298b', function (err) {
+        Article.remove(req.query.articleid, function (err) {
           if (err) {
             jsonWrite(res, undefined);
             return;
@@ -158,23 +153,27 @@ class ArticleDao {
     }
     
     getArticle(req, res, next) {
-        // if (tools.isBlank(req.query.id)) {
-        //     jsonWrite(res, {
-        //         code: 500,
-        //         msg: '缺少文章id'
-        //     })
-        //     return;
-        // }
-        // Article.get(req.query.id, function (err, article) {
-        //     if (err) {
-        //         jsonWrite(res, undefined);
-        //         return;
-        //     }
-        //     jsonWrite(res, article);
-        // })
+        if (tools.isBlank(req.query.articleid)) {
+            jsonWrite(res, {
+                code: 500,
+                msg: '缺少articleid'
+            })
+            return;
+        }
 
-        Article.get('58cf87a97639d925b8fe298b', function (err, article) {
+        try {
+          new ObjectID(req.query.articleid)
+        } catch(err) {
+          jsonWrite(res, {
+                code: 500,
+                msg: 'articleid不正确'
+            })
+            return;
+        }
+
+        Article.get(req.query.articleid, function (err, article) {
             if (err) {
+                console.log(err)
                 jsonWrite(res, undefined);
                 return;
             }
@@ -185,7 +184,7 @@ class ArticleDao {
                 });
                 return;
             }
-            if (req.user && article.collections.findIndex(v => v == req.user.id) !== -1) {
+            if (req.users && article.collections.findIndex(v => v == req.users.id) !== -1) {
                 article.isCollected = true;
             } else {
                 article.isCollected = false;
@@ -200,14 +199,13 @@ class ArticleDao {
 
     getArticleList(req, res, next) {
         let search = req.query.search || '',
-            page = req.query.page || 1,
-            limit = req.query.limit || 14;
+            page = parseInt(req.query.page) || 1,
+            limit = parseInt(req.query.limit) || 10;
         Article.getList(search, page, limit, function (err, listOb, total) {
             if (err) {
                 jsonWrite(res, undefined);
                 return;
             }
-            
             judgeCollected(req, listOb)
             
             jsonWrite(res, {
@@ -221,9 +219,10 @@ class ArticleDao {
     }
 
     getHandpickList(req, res, next) {
-        let page = req.query.page || 1,
-            limit = req.query.limit || 8;
-        Article.handpickList(page, limit, function (err, listOb, total) {
+        let search = req.query.search || '',
+            page = parseInt(req.query.page) || 1,
+            limit = parseInt(req.query.limit) || 10;
+        Article.handpickList(search, page, limit, function (err, listOb, total) {
             if (err) {
                 jsonWrite(res, undefined);
                 return;
@@ -284,8 +283,8 @@ class ArticleDao {
 
         let search = req.query.search || '',
             userid = req.query.userid,
-            page = req.query.page || 1,
-            limit = req.query.limit || 8;
+            page = parseInt(req.query.page) || 1,
+            limit = parseInt(req.query.limit) || 10;
 
         Article.articleListByUser(userid, search, page, limit, function (err, listOb, total) {
             if (err) {
@@ -313,11 +312,20 @@ class ArticleDao {
             })
             return;
         }
+        try {
+          new ObjectID(req.query.userid)
+        } catch(err) {
+          jsonWrite(res, {
+                code: 500,
+                msg: 'userid不正确'
+            })
+            return;
+        }
 
         let search = req.query.search || '',
             userid = req.query.userid,
-            page = req.query.page || 1,
-            limit = req.query.limit || 8;
+            page = parseInt(req.query.page) || 1,
+            limit = parseInt(req.query.limit) || 10;
 
         Article.articleListByCollection(userid, search, page, limit, function (err, listOb, total) {
             if (err) {
@@ -339,24 +347,25 @@ class ArticleDao {
 
     /**收藏文章 */
     addArticleCollections(req, res, next) {
-        // if (tools.isBlank(req.query.articleid)) {
-        //     jsonWrite(res, {
-        //         code: 500,
-        //         msg: '缺少articleid'
-        //     })
-        //     return;
-        // } else if (tools.isBlank(req.query.userid)) {
-        //     jsonWrite(res, {
-        //         code: 500,
-        //         msg: '缺少userid'
-        //     })
-        //     return;
-        // }
+        if (tools.isBlank(req.body.articleid)) {
+            jsonWrite(res, {
+                code: 500,
+                msg: '缺少articleid'
+            })
+            return;
+        }
 
-        req.query.articleid = '58cf87a97639d925b8fe298b';
-        req.query.userid = '58ca89c769f5670763e062ca';
+        try {
+          new ObjectID(req.body.articleid)
+        } catch(err) {
+          jsonWrite(res, {
+                code: 500,
+                msg: 'articleid不正确'
+            })
+            return;
+        }
 
-        Article.get(req.query.articleid, function (err, article) {
+        Article.get(req.body.articleid, function (err, article) {
             if (err) {
                 jsonWrite(res, undefined);
                 return;
@@ -368,14 +377,14 @@ class ArticleDao {
                 });
                 return;
             }
-            if (article.collections.findIndex(v => v == req.query.userid) !== -1) {
+            if (article.collections.findIndex(v => v == req.users.id) !== -1) {
                 jsonWrite(res, {
                     code: 200,
                     msg: '已收藏'
                 });
                 return;
             }
-            Article.addCollections(req.query.articleid, req.query.userid, function (err) {
+            Article.addCollections(req.body.articleid, req.users.id, function (err) {
                 if (err) {
                     jsonWrite(res, undefined);
                     return;
@@ -390,21 +399,25 @@ class ArticleDao {
 
     /**取消收藏 */
     removeArticleCollections(req, res, next) {
-        // if (tools.isBlank(req.query.articleid)) {
-        //     jsonWrite(res, {
-        //         code: 500,
-        //         msg: '缺少articleid'
-        //     })
-        //     return;
-        // } else if (tools.isBlank(req.query.userid)) {
-        //     jsonWrite(res, {
-        //         code: 500,
-        //         msg: '缺少userid'
-        //     })
-        //     return;
-        // }
+        if (tools.isBlank(req.query.articleid)) {
+            jsonWrite(res, {
+                code: 500,
+                msg: '缺少articleid'
+            })
+            return;
+        }
 
-        Article.removeCollections('58cf87a97639d925b8fe298b', '58ca89c769f5670763e062ca', function (err) {
+        try {
+          new ObjectID(req.query.articleid)
+        } catch(err) {
+          jsonWrite(res, {
+                code: 500,
+                msg: 'articleid不正确'
+            })
+            return;
+        }
+
+        Article.removeCollections(req.query.articleid, req.users.id, function (err) {
           if (err) {
             jsonWrite(res, undefined);
             return;
@@ -446,13 +459,15 @@ module.exports = new ArticleDao()
 
 /**判断是否已收藏 */
 function judgeCollected(req, listOb) {
-    if (!req.user) {
+    if (!req.users) {
         listOb.forEach(article => {
             article.isCollected = false;
         })
     } else {
         listOb.forEach(article => {
-            if (article.collections.findIndex(v => v == req.user.id) !== -1) {
+            // console.log('------------')
+            // console.log(article)
+            if (article.collections.findIndex(v => v == req.users.id) !== -1) {
                 article.isCollected = true;
             } else {
                 article.isCollected = false;

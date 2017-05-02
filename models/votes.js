@@ -37,13 +37,13 @@ class Vote {
       function (db, collection, cb) {
         collection.insert(vote, {
           safe: true
-        }, function (err) {
-          cb(err, db);
+        }, function (err, doc) {
+          cb(err, db, doc);
         });
       }
-    ], function (err, db) {
+    ], function (err, db, doc) {
       pool.release(db);
-      callback(err);
+      callback(err,doc.ops[0]);
     });
   }
 

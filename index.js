@@ -34,58 +34,68 @@ app.use(cookieParser());    //加载解析cookie的中间件
 app.use(express.static(path.join(__dirname, 'public')));    //设置public文件夹为存放静态文件的目录
 
 //设置跨域访问
-app.all('*', function(req, res, next) {
-    res.header("Access-Control-Allow-Origin", req.headers.origin);
-    res.header("Access-Control-Allow-Credentials", "true");
-    res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept, If-Modified-Since");
-    // res.header("Access-Control-Allow-Methods","PUT,POST,GET,DELETE,OPTIONS");
-    // res.header("Content-Type", "application/json;charset=utf-8");
-    next();
-});
+// app.all('*', function(req, res, next) {
+//     res.header("Access-Control-Allow-Origin", "*");
+//     // res.header("Access-Control-Allow-Origin", req.headers.origin);
+//     // res.header("Access-Control-Allow-Credentials", "true");
+//     res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept, If-Modified-Since");
+//     res.header("Access-Control-Allow-Methods","PUT,POST,GET,DELETE,OPTIONS");
+//     next();
+// });
 
-// app.use(expressJwt({
-//   secret: settings.jwtSecret,
-//   credentialsRequired: false,
-//   getToken: function fromHeader (req) {
-//     // if (req.headers.Authorization) {
-//     //   let decoded = jwt.verify(req.headers.Authorization, settings.jwtSecret);
-//     //   console.log(decoded)
-//     // if (decoded.exp <= Date.now()) {
-//     //   res.end('Access token has expired', 400);
-//     // } else {
-//     //   req.user = decoded.user;
-//     // }
-//     //   return req.headers.Authorization;
-//     // } else {
-//     //   let err = new Error()
-//     //   err.name = "UnauthorizedError"
-//     //   throw err
-//     // }
+app.use(require('cors')());
 
-//     if (req.query && req.query.token) {
-//       let decoded;
-//       try {
-//         decoded = jwt.verify(req.query.token, settings.jwtSecret);
-//       } catch(err) {
-//         // console.log(err)
-//         let err = new Error()
-//         err.name = "UnauthorizedError"
-//         throw err
-//       }
-//       if (decoded.exp <= Date.now()) {
-//         res.end('Access token has expired', 403);
-//       } else {
-//         req.user = decoded.user;
-//       }
-//       return req.query.token;
-//     } else {
-//       let err = new Error()
-//       err.name = "UnauthorizedError"
-//       throw err
-//       return null
-//     }
-//   }
-// }).unless({path: ["/login"]}));
+//jwt
+app.use(expressJwt({
+  secret: settings.jwtSecret,
+  credentialsRequired: false,
+  getToken: function fromHeader (req) {
+    if (req.headers.authorization) {
+      let decoded;
+      try {
+        decoded = jwt.verify(req.headers.authorization, settings.jwtSecret);
+      } catch(err) {
+        let err = new Error()
+        err.name = "UnauthorizedError"
+        throw err
+      }
+      if (decoded.exp <= Date.now()) {
+        res.end('Access token has expired', 403);
+      } else {
+        req.users = decoded.user;
+      }
+      return req.headers.authorization;
+    } else {
+      let err = new Error()
+      err.name = "UnauthorizedError"
+      throw err
+      return null
+    }
+
+    // if (req.query && req.query.token) {
+    //   let decoded;
+    //   try {
+    //     decoded = jwt.verify(req.query.token, settings.jwtSecret);
+    //   } catch(err) {
+    //     // console.log(err)
+    //     let err = new Error()
+    //     err.name = "UnauthorizedError"
+    //     throw err
+    //   }
+    //   if (decoded.exp <= Date.now()) {
+    //     res.end('Access token has expired', 403);
+    //   } else {
+    //     req.user = decoded.user;
+    //   }
+    //   return req.query.token;
+    // } else {
+    //   let err = new Error()
+    //   err.name = "UnauthorizedError"
+    //   throw err
+    //   return null
+    // }
+  }
+}).unless({path: ["/getAccToken", "/login"]}));
 
 //打印错误日志到本地文件
 app.use(function (err, req, res, next) {

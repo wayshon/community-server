@@ -1,5 +1,6 @@
 let User = require('../models/users'),
-    tools = require('../config/tools');
+    tools = require('../config/tools'),
+    ObjectID = require('mongodb').ObjectID;
 
 // 向前台返回JSON方法的简单封装
 let jsonWrite = function (res, ret) {
@@ -36,21 +37,22 @@ class UserDao {
             return;
         }
         let newUser = {
-            subscribe: req.subscribe || '', 
-            openid: req.openid, 
-            nickname: req.nickname || '', 
-            sex: req.sex || 1, 
-            language: req.language || 'zh_CN', 
-            city: req.city || '', 
-            province: req.province || '', 
-            country: req.country || '', 
-            headimgurl: req.headimgurl || '', 
-            subscribe_time: req.subscribe_time || new Date().getTime(),
-            unionid: req.unionid || '',
-            remark: req.remark || '',
-            groupid: req.groupid || -1,
-            phone: req.phone || -1
+            subscribe: req.body.subscribe || '', 
+            openid: req.body.openid, 
+            nickname: req.body.nickname || '', 
+            sex: req.body.sex || 1, 
+            language: req.body.language || 'zh_CN', 
+            city: req.body.city || '', 
+            province: req.body.province || '', 
+            country: req.body.country || '', 
+            headimgurl: req.body.headimgurl || '', 
+            subscribe_time: req.body.subscribe_time || new Date().getTime(),
+            unionid: req.body.unionid || '',
+            remark: req.body.remark || '',
+            groupid: req.body.groupid || -1,
+            phone: req.body.phone || -1
         }
+
         User.save(newUser, function (err, user) {
           if (err) {
             jsonWrite(res, undefined);
@@ -110,14 +112,24 @@ class UserDao {
     }
 
     getUserInfo(req, res, next) {
-        // if (tools.isBlank(req.user)) {
+        // if (tools.isBlank(req.users)) {
         //     jsonWrite(res, {
         //         code: 500,
         //         msg: '尚未登录'
         //     })
         //     return;
         // }
-        User.userInfo("58ca89c769f5670763e062ca", function (err, user) {
+        // try {
+        //   new ObjectID(req.users.id)
+        // } catch(err) {
+        //   jsonWrite(res, {
+        //         code: 500,
+        //         msg: 'userid不正确'
+        //     })
+        //     return;
+        // }
+
+        User.userInfo(req.users.id, function (err, user) {
             if (err) {
                 jsonWrite(res, undefined);
                 return;
@@ -138,15 +150,25 @@ class UserDao {
     }
 
     getOtherInfo(req, res, next) {
-        // if (tools.isBlank(req.userid)) {
-        //     jsonWrite(res, {
-        //         code: 500,
-        //         msg: '缺少userid'
-        //     })
-        //     return;
-        // }
+        if (tools.isBlank(req.query.userid)) {
+            jsonWrite(res, {
+                code: 500,
+                msg: '缺少userid'
+            })
+            return;
+        }
 
-        User.otherInfo("58ca89c769f5670763e062ca", function (err, user) {
+        try {
+          new ObjectID(req.query.userid)
+        } catch(err) {
+          jsonWrite(res, {
+                code: 500,
+                msg: 'userid不正确'
+            })
+            return;
+        }
+
+        User.otherInfo(req.query.userid, function (err, user) {
             if (err) {
                 jsonWrite(res, undefined);
                 return;

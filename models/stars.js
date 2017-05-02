@@ -21,22 +21,131 @@ let pool = poolModule.Pool({
 });
 
 class Star {
+  // save(star, callback) {
+  //   async.waterfall([
+  //     function (cb) {
+  //       pool.acquire(function (err, db) {
+  //         cb(err, db);
+  //       });
+  //     },
+  //     function (db, cb) {
+  //       db.collection('stars', function (err, collection) {
+  //         cb(err, db, collection);
+  //       });
+  //     },
+  //     function (db, collection, cb) {
+  //       collection.insert(star, {
+  //         safe: true
+  //       }, function (err) {
+  //         cb(err, db);
+  //       });
+  //     },
+  //     function (db, cb) {
+  //       db.collection('articles', function (err, collection) {
+  //         cb(err, db, collection);
+  //       });
+  //     },
+  //     function (db, collection, cb) {
+  //       collection.update({
+  //         "_id": new ObjectID(star.articleid)
+  //       }, {
+  //         $inc: {"starNum": 1}
+  //       }, function (err) {
+  //         cb(err, db, collection);
+  //       });
+  //     },
+  //     function (db, collection, cb) {
+  //       collection.findOne({
+  //         "_id": new ObjectID(star.articleid)
+  //       },{
+  //         userid: true,
+  //         avatar: true,
+  //         nickname: true,
+  //         content: true
+  //       },function (err, message) {
+  //         if (tools.isBlank(message)) {
+  //           err = 'noArticle'
+  //           cb(err, db)
+  //         } else {
+  //           message.articleid = message._id.toString();
+  //           message.fromid = star.userid;
+  //           message.comment = null;
+  //           message.date = star.date;
+  //           message.star = true;
+
+  //           delete message._id;
+
+  //           cb(err, db, message);
+  //         }
+  //       });
+  //     },
+  //     function (db, message, cb) {
+  //       db.collection('messages', function (err, collection) {
+  //         cb(err, db, collection, message);
+  //       });
+  //     },
+  //     function (db, collection, message, cb) {
+  //       collection.findOne({
+  //         fromid: message.fromid,
+  //         userid: message.userid
+  //       }, function (err, doc) {
+  //         cb(err, db, collection, message, doc);
+  //       });
+  //     },
+  //     // function (db, collection, message, cb) {
+  //     //   let query = {
+  //     //     fromid: message.fromid,
+  //     //     userid: message.userid
+  //     //   }
+  //     //   collection.count(query, function (err, total) {
+  //     //     if (err) {
+  //     //       cb(err, db);
+  //     //     } else if (total > 0) {
+  //     //       collection.update({
+  //     //         "_id": new ObjectID(_articleid)
+  //     //       }, {
+  //     //         $push: {"collections": _userid}
+  //     //       } , function (err) {
+  //     //           cb(err, db);
+  //     //       });
+  //     //     } else {
+  //     //       collection.insert(message, {
+  //     //         safe: true
+  //     //       }, function (err) {
+  //     //         cb(err, db);
+  //     //       });
+  //     //     }
+  //     //   });
+  //     // },
+  //     function (db, collection, message, doc, cb) {
+  //       if (tools.isBlank(doc)) {
+  //         collection.insert(message, {
+  //           safe: true
+  //         }, function (err) {
+  //           cb(err, db);
+  //         });
+  //       } else {
+  //         collection.update({
+  //           "_id": new ObjectID(doc._id)
+  //         }, {
+  //           $set: {
+  //             date: message.date
+  //           }
+  //         } , function (err) {
+  //             cb(err, db);
+  //         });
+  //       }
+  //     }
+  //   ], function (err, db) {
+  //     pool.release(db);
+  //     callback(err);
+  //   });
+  // }
+
   save(star, callback) {
     async.waterfall([
       function (cb) {
         pool.acquire(function (err, db) {
-          cb(err, db);
-        });
-      },
-      function (db, cb) {
-        db.collection('stars', function (err, collection) {
-          cb(err, db, collection);
-        });
-      },
-      function (db, collection, cb) {
-        collection.insert(star, {
-          safe: true
-        }, function (err) {
           cb(err, db);
         });
       },
@@ -63,15 +172,20 @@ class Star {
           nickname: true,
           content: true
         },function (err, message) {
-          message.articleid = message._id.toString();
-          message.fromid = star.userid;
-          message.comment = null;
-          message.date = star.date;
-          message.star = true;
+          if (tools.isBlank(message)) {
+            err = 'noArticle'
+            cb(err, db)
+          } else {
+            message.articleid = message._id.toString();
+            message.fromid = star.userid;
+            message.comment = null;
+            message.date = star.date;
+            message.star = true;
 
-          delete message._id;
+            delete message._id;
 
-          cb(err, db, message);
+            cb(err, db, message);
+          }
         });
       },
       function (db, message, cb) {
@@ -130,6 +244,18 @@ class Star {
               cb(err, db);
           });
         }
+      },
+      function (db, cb) {
+        db.collection('stars', function (err, collection) {
+          cb(err, db, collection);
+        });
+      },
+      function (db, collection, cb) {
+        collection.insert(star, {
+          safe: true
+        }, function (err) {
+          cb(err, db);
+        });
       }
     ], function (err, db) {
       pool.release(db);

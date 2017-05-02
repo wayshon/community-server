@@ -141,7 +141,7 @@ class Article {
             cb(err, db, doc);
           });
         } else {
-          cb({msg: '没有找到文章'}, db, doc);
+          cb(null, db, doc);
         }
       }
     ],function (err, db, doc) {
@@ -192,7 +192,7 @@ class Article {
   }
 
   /**获取精选文章列表 */
-  handpickList(page, limit, callback) {
+  handpickList(search, page, limit, callback) {
     async.waterfall([
       function (cb) {
         pool.acquire(function (err, db) {
@@ -208,6 +208,10 @@ class Article {
         let query = {
           handpick: true
         };
+        if (search) {
+          let key = new RegExp(search, "i");
+          query.title = key;
+        }
         //使用 count 返回特定查询的文档数 total
         //这里多包了collection.count()这个壳
         collection.count(query, function (err, total) {

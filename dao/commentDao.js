@@ -1,7 +1,8 @@
 let Comment = require('../models/comments'),
     tools = require('../config/tools'),
     moment = require('moment'),
-    shortid = require('shortid');
+    shortid = require('shortid'),
+    ObjectID = require('mongodb').ObjectID;
 
 // 向前台返回JSON方法的简单封装
 let jsonWrite = function (res, ret) {
@@ -17,45 +18,40 @@ let jsonWrite = function (res, ret) {
 
 class CommentDao {
     addComment(req, res, next) {
-        // if (!req.body || tools.isBlank(req.body.content)) {
-        //     jsonWrite(res, {
-        //         code: 500,
-        //         msg: '缺少内容'
-        //     })
-        //     return;
-        // } else if (tools.isBlank(req.body.articleid)) {
-        //     jsonWrite(res, {
-        //         code: 500,
-        //         msg: '缺少articleid'
-        //     })
-        //     return;
-        // }
-
-        // let newComment = {
-        //     userid: req.body.userid,
-        //     nickname: req.body.nickname,
-        //     avatar: req.body.avatar,
-        //     level: req.body.level,
-        //     articleid: req.body.articleid,
-        //     content: req.body.content,
-        //     date: moment().format('YYYY-MM-DD HH:mm:ss'),
-        //     starNum: 0,
-        //     replyUserid: req.body.replyid || -1,
-        //     replyName: req.body.replyName || ''
-        // }
-
+        if (!req.body || tools.isBlank(req.body.content)) {
+            jsonWrite(res, {
+                code: 500,
+                msg: '缺少内容'
+            })
+            return;
+        } else if (tools.isBlank(req.body.articleid)) {
+            jsonWrite(res, {
+                code: 500,
+                msg: '缺少articleid'
+            })
+            return;
+        }
+        try {
+          new ObjectID(req.body.articleid)
+        } catch(err) {
+          jsonWrite(res, {
+                code: 500,
+                msg: 'articleid不正确'
+            })
+            return;
+        }
 
         let newComment = {
-            userid: 666,
-            nickname: 'req.body.nickname',
-            avatar: 'req.body.avatar',
-            level: 'req.body.level',
-            articleid: "58d07ad808ab9205e7b03c1f",
-            content: 'req.body.content',
+            userid: req.users.id,
+            nickname: req.users.name,
+            avatar: req.users.avatar,
+            level: req.users.level,
+            articleid: req.body.articleid,
+            content: req.body.content,
             date: moment().format('YYYY-MM-DD HH:mm:ss'),
             starNum: 0,
-            replyUserid: -1,
-            replyName: ''
+            replyUserid: req.body.replyid || -1,
+            replyName: req.body.replyName || ''
         }
 
         Comment.save(newComment, function (err, user) {
@@ -71,15 +67,24 @@ class CommentDao {
     }
 
     removeComment(req, res, next) {
-        // if (tools.isBlank(req.query.commentid)) {
-        //     jsonWrite(res, {
-        //         code: 500,
-        //         msg: '缺少commentid'
-        //     })
-        //     return;
-        // }
+        if (tools.isBlank(req.query.commentid)) {
+            jsonWrite(res, {
+                code: 500,
+                msg: '缺少commentid'
+            })
+            return;
+        }
+        try {
+            new ObjectID(req.query.commentid)
+        } catch(err) {
+            jsonWrite(res, {
+                code: 500,
+                msg: 'commentid不正确'
+            })
+            return;
+        }
 
-        Comment.remove("58cf455e102ded0c3dec9d0c", function (err) {
+        Comment.remove(req.query.commentid, function (err) {
           if (err) {
             jsonWrite(res, undefined);
             return;
@@ -92,18 +97,27 @@ class CommentDao {
     }
 
     getCommentList(req, res, next) {
-        // if (tools.isBlank(req.query.articleid)) {
-        //     jsonWrite(res, {
-        //         code: 500,
-        //         msg: '缺少articleid'
-        //     })
-        //     return;
-        // }
+        if (tools.isBlank(req.query.articleid)) {
+            jsonWrite(res, {
+                code: 500,
+                msg: '缺少articleid'
+            })
+            return;
+        }
+        try {
+          new ObjectID(req.query.articleid)
+        } catch(err) {
+          jsonWrite(res, {
+                code: 500,
+                msg: 'articleid不正确'
+            })
+            return;
+        }
 
         let articleid = req.query.articleid,
-            page = req.query.page || 1,
-            limit = req.query.limit || 10;
-        Comment.getList("58d07ad808ab9205e7b03c1f", page, limit, function (err, listOb, total) {
+            page = parseInt(req.query.page) || 1,
+            limit = parseInt(req.query.limit) || 10;
+        Comment.getList(articleid, page, limit, function (err, listOb, total) {
             if (err) {
                 jsonWrite(res, undefined);
                 return;
